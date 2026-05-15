@@ -1,0 +1,17 @@
+<configuration>
+	<input>
+		<net-file value="longroad.net.xml" />
+		<route-files value="longroad.rou.xml" />
+	</input>
+	<time>
+		<begin value="0" />
+		<end value="1000" />
+		<step-length value="0.1" />
+	</time>
+	<report>
+		<no-step-log value="true"/>
+	</report>
+	<gui_only>
+		<start value="true" />
+	</gui_only>
+</configuration>
