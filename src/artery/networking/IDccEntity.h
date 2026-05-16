@@ -3,6 +3,7 @@
 
 #include <vanetza/dcc/channel_probe_processor.hpp>
 #include <vanetza/dcc/interface.hpp>
+#include <vanetza/dcc/channel_load.hpp>
 #include <vanetza/dcc/transmit_rate_control.hpp>
 #include <vanetza/geonet/dcc_field_generator.hpp>
 
@@ -18,6 +19,7 @@ public:
     virtual vanetza::dcc::RequestInterface* getRequestInterface() = 0;
     virtual vanetza::dcc::TransmitRateThrottle* getTransmitRateThrottle() = 0;
     virtual vanetza::geonet::DccFieldGenerator* getGeonetFieldGenerator() = 0;
+    virtual vanetza::dcc::ChannelLoad getChannelLoad() const = 0;
 
     virtual ~IDccEntity() = default;
 };

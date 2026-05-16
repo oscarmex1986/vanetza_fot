@@ -42,6 +42,7 @@ class ExampleService : public ItsG5Service
         int getQueueOccupancy(int channel, int tc);
         omnetpp::SimTime genInterval(int channel, int tc);
         omnetpp::SimTime genGot(int channel, int tc);
+        double getCbr(int channel);
         
 
     protected:
