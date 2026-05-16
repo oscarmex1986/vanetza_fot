@@ -133,9 +133,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 	channelsDcc[2][0] = 176;
 	channelsDcc[2][1] = getQueueOccupancy((int)channelsDcc[2][0],0) * SIMTIME_DBL(genInterval((int)channelsDcc[2][0],0)) + SIMTIME_DBL(genInterval((int)channelsDcc[2][0],0)) + SIMTIME_DBL(genGot((int)channelsDcc[2][0],0));
 	//channelsDcc[2][1] = SIMTIME_DBL(genInterval((int)channelsDcc[2][0],2));
-	std::cout << findHost()->getFullName() << " CLR is " << getCbr(180) << " on channel " << 180 << "\n";
-	std::cout << findHost()->getFullName() << " CLR is " << getCbr(172) << " on channel " << 172 << "\n";
-	std::cout << findHost()->getFullName() << " CLR is " << getCbr(176) << " on channel " << 176 << "\n";
+	
 	int selectedChannel;
 	
 	int randomizer = intuniform(0,2);
