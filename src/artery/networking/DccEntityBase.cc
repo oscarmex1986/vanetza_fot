@@ -101,6 +101,7 @@ void DccEntityBase::reportLocalChannelLoad(vanetza::dcc::ChannelLoad cbr)
 
 void DccEntityBase::onLocalCbr(vanetza::dcc::ChannelLoad cbr)
 {
+    mLastChannelLoad = cbr;
     if (mNetworkEntity) {
         mNetworkEntity->update_local_cbr(cbr);
     } else {

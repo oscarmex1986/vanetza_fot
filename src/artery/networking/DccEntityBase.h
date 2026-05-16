@@ -23,6 +23,11 @@ public:
     void initialize(int stage) override;
     void finish() override;
 
+    vanetza::dcc::ChannelLoad getChannelLoad() const override
+    {
+        return mLastChannelLoad;
+    }
+
     // cListener
     void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, double, omnetpp::cObject*) override;
 
@@ -45,6 +50,7 @@ protected:
     std::unique_ptr<vanetza::geonet::DccInformationSharing> mNetworkEntity;
     std::unique_ptr<vanetza::dcc::FlowControl> mFlowControl;
     vanetza::dcc::ChannelLoad mTargetCbr;
+    vanetza::dcc::ChannelLoad mLastChannelLoad;
     Router* mRouter;
     vanetza::Runtime* mRuntime;
     std::unique_ptr<AccessInterface> mAccessInterface;

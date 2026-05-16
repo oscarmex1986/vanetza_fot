@@ -133,7 +133,9 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 	channelsDcc[2][0] = 176;
 	channelsDcc[2][1] = getQueueOccupancy((int)channelsDcc[2][0],0) * SIMTIME_DBL(genInterval((int)channelsDcc[2][0],0)) + SIMTIME_DBL(genInterval((int)channelsDcc[2][0],0)) + SIMTIME_DBL(genGot((int)channelsDcc[2][0],0));
 	//channelsDcc[2][1] = SIMTIME_DBL(genInterval((int)channelsDcc[2][0],2));
-
+	std::cout << findHost()->getFullName() << " CLR is " << getCbr(180) << " on channel " << 180 << "\n";
+	std::cout << findHost()->getFullName() << " CLR is " << getCbr(172) << " on channel " << 172 << "\n";
+	std::cout << findHost()->getFullName() << " CLR is " << getCbr(176) << " on channel " << 176 << "\n";
 	int selectedChannel;
 	
 	int randomizer = intuniform(0,2);
@@ -326,11 +328,23 @@ int ExampleService::getQueueOccupancy(int channel, int tc)
 			size += fc->get_size(vanetza::access::AccessCategory::BE);
 			size += fc->get_size(vanetza::access::AccessCategory::BK);
 		}
-		if (size > 0) std::cout << findHost()->getFullName() << " " << size << " packets waiting on channel " << channel << "\n";
+		//if (size > 0) std::cout << findHost()->getFullName() << " " << size << " packets waiting on channel " << channel << "\n";
 		return (int)size;
 	}
 
 	return 0;	
+}
+double ExampleService::getCbr(int channel)
+{
+	
+	auto& networks = getFacilities().get_const<NetworkInterfaceTable>();
+	auto network = networks.select(channel);
+	auto netifc = network;
+
+	if(!netifc) return -100.0;
+	const auto& dcc_entity = netifc->getDccEntity();
+
+	return dcc_entity.getChannelLoad().value();
 }
 
 } // namespace artery

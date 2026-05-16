@@ -2167,6 +2167,8 @@ vanetza/dcc/channel_probe_processor.hpp
 -
 vanetza/dcc/interface.hpp
 -
+vanetza/dcc/channel_load.hpp
+-
 vanetza/dcc/transmit_rate_control.hpp
 -
 vanetza/geonet/dcc_field_generator.hpp
