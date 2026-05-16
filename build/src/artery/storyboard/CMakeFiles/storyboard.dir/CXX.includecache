@@ -2986,11 +2986,21 @@ artery/storyboard/CarSetCondition.h
 algorithm
 -
 
+/home/vagrant/artery/src/artery/storyboard/ConditionResult.cc
+artery/storyboard/ConditionResult.h
+/home/vagrant/artery/src/artery/storyboard/artery/storyboard/ConditionResult.h
+boost/variant/static_visitor.hpp
+-
+
 /home/vagrant/artery/src/artery/storyboard/DeferringCondition.cc
 artery/storyboard/DeferringCondition.h
 /home/vagrant/artery/src/artery/storyboard/artery/storyboard/DeferringCondition.h
 artery/utility/PointerCheck.h
 /home/vagrant/artery/src/artery/storyboard/artery/utility/PointerCheck.h
+
+/home/vagrant/artery/src/artery/storyboard/Effect.cc
+artery/storyboard/Effect.h
+/home/vagrant/artery/src/artery/storyboard/artery/storyboard/Effect.h
 
 /home/vagrant/artery/src/artery/storyboard/EffectStack.cc
 algorithm

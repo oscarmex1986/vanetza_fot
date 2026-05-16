@@ -125,19 +125,19 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 	double channelsDcc[3][2];
 
 	channelsDcc[0][0] = 180;
-	channelsDcc[0][1] = getQueueOccupancy((int)channelsDcc[0][0],3) * SIMTIME_DBL(genInterval((int)channelsDcc[0][0],3)) + SIMTIME_DBL(genInterval((int)channelsDcc[0][0],3)) + SIMTIME_DBL(genGot((int)channelsDcc[0][0],3));
-	//channelsDcc[0][1] = SIMTIME_DBL(genInterval((int)channelsDcc[0][0],2));
+	//channelsDcc[0][1] = getQueueOccupancy((int)channelsDcc[0][0],2) * SIMTIME_DBL(genInterval((int)channelsDcc[0][0],2)) + SIMTIME_DBL(genInterval((int)channelsDcc[0][0],2)) + SIMTIME_DBL(genGot((int)channelsDcc[0][0],2));
+	channelsDcc[0][1] = getCbr((int)channelsDcc[0][0]);
 	channelsDcc[1][0] = 172;
-	channelsDcc[1][1] = getQueueOccupancy((int)channelsDcc[1][0],0) * SIMTIME_DBL(genInterval((int)channelsDcc[1][0],0)) + SIMTIME_DBL(genInterval((int)channelsDcc[1][0],0)) + SIMTIME_DBL(genGot((int)channelsDcc[1][0],0));
+	channelsDcc[1][1] = getCbr((int)channelsDcc[1][0]);
 	//channelsDcc[1][1] = SIMTIME_DBL(genInterval((int)channelsDcc[1][0],2));
 	channelsDcc[2][0] = 176;
-	channelsDcc[2][1] = getQueueOccupancy((int)channelsDcc[2][0],0) * SIMTIME_DBL(genInterval((int)channelsDcc[2][0],0)) + SIMTIME_DBL(genInterval((int)channelsDcc[2][0],0)) + SIMTIME_DBL(genGot((int)channelsDcc[2][0],0));
+	channelsDcc[2][1] = getCbr((int)channelsDcc[2][0]);
 	//channelsDcc[2][1] = SIMTIME_DBL(genInterval((int)channelsDcc[2][0],2));
 	
 	int selectedChannel;
 	
 	int randomizer = intuniform(0,2);
-	
+	/*
 	selectedChannel = (int)channelsDcc[randomizer][0];
 	double minDelay = channelsDcc[randomizer][1];
 	for(int i = 0; i < 3 ; i++){
@@ -161,16 +161,16 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 			}
 		}
 	}
+	*/
 	
-	/*
 	selectedChannel = (int)channelsDcc[0][0];
 	selch = 0;
-	if(channelsDcc[0][1] > 0.300){
-		if(channelsDcc[1][1] < 0.300){ 
+	if(channelsDcc[0][1] > 0.55){
+		if(channelsDcc[1][1] < 0.55){ 
 			selectedChannel = (int)channelsDcc[1][0];
 			selch = 1;
 		} else {
-			if(channelsDcc[2][1] < 0.300){
+			if(channelsDcc[2][1] < 0.55){
 				selectedChannel = (int)channelsDcc[2][0];
 				selch = 2;
 			} else {
@@ -178,7 +178,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 				selectedChannel = (int)channelsDcc[randomizer][0];
 			}
 		}
-	}*/
+	}
 	/*
 	if(lastChannel == 0){ 
 		selectedChannel = (int)channelsDcc[roundRobin][0];
@@ -204,9 +204,9 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 			req.gn.transport_type = geonet::TransportType::SHB;
 			//req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP0));
 			if(selectedChannel != 180){
-				req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP0));
+				req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP2));
 			} else {
-				req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP3));
+				req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP2));
 			} 
 			req.gn.communication_profile = geonet::CommunicationProfile::ITS_G5;
 			req.gn.its_aid = example_its_aid;
