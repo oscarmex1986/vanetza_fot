@@ -165,12 +165,12 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 	
 	selectedChannel = (int)channelsDcc[0][0];
 	selch = 0;
-	if(channelsDcc[0][1] > 0.55){
-		if(channelsDcc[1][1] < 0.55){ 
+	if(channelsDcc[0][1] > 0.68){
+		if(channelsDcc[1][1] < 0.68){ 
 			selectedChannel = (int)channelsDcc[1][0];
 			selch = 1;
 		} else {
-			if(channelsDcc[2][1] < 0.55){
+			if(channelsDcc[2][1] < 0.68){
 				selectedChannel = (int)channelsDcc[2][0];
 				selch = 2;
 			} else {
