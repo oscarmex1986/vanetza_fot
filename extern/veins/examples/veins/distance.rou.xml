@@ -1,0 +1,44 @@
+<routes>
+	<vType color="1,1,0" maxSpeed="0" minGap="0.5" length="0.5" sigma="0.5" decel="4.5" accel="2.6" id="vtype0"/>
+	<route id="route1" edges="1" />
+	<route id="route2" edges="2" />
+	<route id="route3" edges="3" />
+	<route id="route4" edges="4" />
+	<route id="route5" edges="5" />
+	<route id="route6" edges="6" />
+	<route id="route7" edges="7" />
+	<route id="route8" edges="8" />
+	<route id="route9" edges="9" />
+	<route id="route10" edges="10" />
+	<route id="route11" edges="11" />
+	<route id="route12" edges="12" />
+	<route id="route13" edges="13" />
+	<route id="route14" edges="14" />
+	<route id="route15" edges="15" />
+	<route id="route16" edges="16" />
+	<route id="route17" edges="17" />
+	<route id="route18" edges="18" />
+	<route id="route19" edges="19" />
+	<route id="route20" edges="20" />
+
+	<flow id="flow1" number="1" period="3" begin="0" route="route1" type="vtype0" />
+	<flow id="flow2" number="1" period="3" begin="0" route="route2" type="vtype0"/>
+	<flow id="flow3" number="1" period="3" begin="0" route="route3" type="vtype0"/>
+	<flow id="flow4" number="1" period="3" begin="0" route="route4" type="vtype0"/>
+	<flow id="flow5" number="1" period="3" begin="0" route="route5" type="vtype0"/>
+	<flow id="flow6" number="1" period="3" begin="0" route="route6" type="vtype0"/>
+	<flow id="flow7" number="1" period="3" begin="0" route="route7" type="vtype0"/>
+	<flow id="flow8" number="1" period="3" begin="0" route="route8" type="vtype0"/>
+	<flow id="flow9" number="1" period="3" begin="0" route="route9" type="vtype0"/>-->
+	<flow id="flow10" number="1" period="3" begin="0" route="route10" type="vtype0"/>
+	<flow id="flow11" number="1" period="3" begin="0" route="route11" type="vtype0"/>
+	<flow id="flow12" number="1" period="3" begin="0" route="route12" type="vtype0"/>
+	<flow id="flow13" number="1" period="3" begin="0" route="route13" type="vtype0"/>
+	<flow id="flow14" number="1" period="3" begin="0" route="route14" type="vtype0"/>
+	<flow id="flow15" number="1" period="3" begin="0" route="route15" type="vtype0"/>
+	<flow id="flow16" number="1" period="3" begin="0" route="route16" type="vtype0"/>
+	<flow id="flow17" number="1" period="3" begin="0" route="route17" type="vtype0"/>
+	<flow id="flow18" number="1" period="3" begin="0" route="route18" type="vtype0"/>
+	<flow id="flow19" number="1" period="3" begin="0" route="route19" type="vtype0"/>-->
+	<flow id="flow20" number="1" period="3" begin="0" route="route20" type="vtype0"/>
+</routes>

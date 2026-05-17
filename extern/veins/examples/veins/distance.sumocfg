@@ -1,0 +1,17 @@
+<configuration>
+	<input>
+		<net-file value="distance.net.xml" />
+		<route-files value="distance.rou.xml" />
+	</input>
+	<time>
+		<begin value="0" />
+		<end value="1000" />
+		<step-length value="0.001" />
+	</time>
+	<report>
+		<no-step-log value="true"/>
+	</report>
+	<gui_only>
+		<start value="true" />
+	</gui_only>
+</configuration>

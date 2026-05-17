@@ -1,0 +1,9 @@
+ansible/*.retry
+scenarios/**/*.pyc
+scenarios/*/results/*
+scenarios/*/.tkenvrc
+scenarios/*/*.csv
+src/artery/messages/*_m.cc
+src/artery/messages/*_m.h
+www/
+.vagrant/
