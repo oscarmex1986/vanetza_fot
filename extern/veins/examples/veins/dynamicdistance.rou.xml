@@ -1,0 +1,10 @@
+<routes>
+	<vType color="1,1,0" maxSpeed="0" minGap="0.5" length="0.5" sigma="0.5" decel="4.5" accel="2.6" id="vtype0"/>
+	<vType color="1,1,0" maxSpeed="33" minGap="0.5" length="0.5" sigma="0.5" decel="4.5" accel="2.6" id="vtype1"/>
+	<route id="route1" edges="1" />
+	<route id="route2" edges="2" />
+	
+	<flow id="flow1" number="1" period="3" begin="0" route="route1" type="vtype0" />
+	<flow id="flow2" number="1" period="3" begin="0.001" route="route2" type="vtype1"/>
+	
+</routes>
