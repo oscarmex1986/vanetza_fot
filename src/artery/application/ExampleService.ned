@@ -23,7 +23,7 @@ simple ExampleService like ItsG5Service
         // 1: CLR-based Sequential Filling
         // 2: CALIS
         // 3: Time-based CASF
-        int aliSelection = default(2);
+        int aliSelection = default(3);
         
         // At which CLR rate shall secondary channels be turned on
         double seqFillThreshold = default(0.50);
@@ -33,7 +33,7 @@ simple ExampleService like ItsG5Service
         double casfThreshold @unit(s) = default(0.3s);  
 
         int messageSize = default(320);
-        int tcPrimary = default(2);
+        int tcPrimary = default(3);
         int tcAlternate = default(2);
 
         volatile double genRate = exponential(0.025);

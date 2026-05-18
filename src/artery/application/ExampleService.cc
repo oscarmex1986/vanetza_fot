@@ -102,7 +102,7 @@ void ExampleService::finish()
 {
 	// you could record some scalars at this point
 	myfile3 = fopen("SentExaCh.csv", "a");
-	fprintf(myfile3, "%s,%d,%d,%d,%f\n",findHost()->getFullName(),genCh[0],genCh[1],genCh[2],(genCh[0]+genCh[1]+genCh[2])/avgQueuePlace);
+	fprintf(myfile3, "%s,%d,%d,%d,%f\n",findHost()->getFullName(),genCh[0],genCh[1],genCh[2],avgQueuePlace/(genCh[0]+genCh[1]+genCh[2]));
 	fclose(myfile3);
 	ItsG5Service::finish();
 }
