@@ -157,6 +157,77 @@ int ExampleService::calis()
 	return selectedChannel;
 }
 
+int ExampleService::minCBR()
+{
+	double channelsDcc[3][2];
+
+	channelsDcc[0][0] = 180;
+	channelsDcc[0][1] = getCbr((int)channelsDcc[0][0]);
+	channelsDcc[1][0] = 172;
+	channelsDcc[1][1] = getCbr((int)channelsDcc[1][0]);
+	channelsDcc[2][0] = 176;
+	channelsDcc[2][1] = getCbr((int)channelsDcc[2][0]);
+	
+	int selectedChannel;
+	std::vector<int> candidates; 
+	int randomizer = intuniform(0,2);
+	
+	selectedChannel = (int)channelsDcc[randomizer][0];
+	double minLoad = channelsDcc[randomizer][1];
+	for(int i = 0; i < 3 ; i++){
+		if(channelsDcc[i][1] < minLoad){
+			minLoad = channelsDcc[i][1];
+			candidates.clear();
+			candidates.push_back(channelsDcc[i][0]);
+		} else {
+			if(channelsDcc[i][1] == minLoad){
+				candidates.push_back(channelsDcc[i][0]);	
+			}
+		}
+	}
+	selectedChannel = candidates[intuniform(0,candidates.size()-1)];
+	if (selectedChannel == channelsDcc[0][0]) selch = 0;
+	if (selectedChannel == channelsDcc[1][0]) selch = 1;
+	if (selectedChannel == channelsDcc[2][0]) selch = 2;
+	return selectedChannel;
+}
+
+
+int ExampleService::minTRC()
+{
+	double channelsDcc[3][2];
+
+	channelsDcc[0][0] = 180;
+	channelsDcc[0][1] = SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim));
+	channelsDcc[1][0] = 172;
+	channelsDcc[1][1] = SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt));
+	channelsDcc[2][0] = 176;
+	channelsDcc[2][1] = SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt));
+	
+	int selectedChannel;
+	std::vector<int> candidates; 
+	int randomizer = intuniform(0,2);
+	
+	selectedChannel = (int)channelsDcc[randomizer][0];
+	double minDelay = channelsDcc[randomizer][1];
+	for(int i = 0; i < 3 ; i++){
+		if(channelsDcc[i][1] < minDelay){
+			minDelay = channelsDcc[i][1];
+			candidates.clear();
+			candidates.push_back(channelsDcc[i][0]);
+		} else {
+			if(channelsDcc[i][1] == minDelay){
+				candidates.push_back(channelsDcc[i][0]);	
+			}
+		}
+	}
+	selectedChannel = candidates[intuniform(0,candidates.size()-1)];
+	if (selectedChannel == channelsDcc[0][0]) selch = 0;
+	if (selectedChannel == channelsDcc[1][0]) selch = 1;
+	if (selectedChannel == channelsDcc[2][0]) selch = 2;
+	return selectedChannel;
+}
+
 int ExampleService::loadBalancing()
 {
 	int selectedChannel;
@@ -263,6 +334,8 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 		if (mAliSelection == 1) selectedChannel = seqFillCBR();
 		if (mAliSelection == 2) selectedChannel = calis();
 		if (mAliSelection == 3) selectedChannel = casf();
+		if (mAliSelection == 4) selectedChannel = minCBR();
+		if (mAliSelection == 5) selectedChannel = minTRC();
 		
 		/*
 		*/

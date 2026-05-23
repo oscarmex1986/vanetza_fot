@@ -68,6 +68,8 @@ class ExampleService : public ItsG5Service
         int casf();
         int loadBalancing();
         int seqFillCBR();
+        int minCBR();
+        int minTRC();
         int selch = 0;
         int seltc = 0;
         double avgQueuePlace = 0.0; 
