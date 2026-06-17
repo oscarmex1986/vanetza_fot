@@ -12,7 +12,7 @@ simple LimericDccEntity like IDccEntity
         string NetworkEntity = default("");
 
         double targetCbr = default(0.68);
-        int queueLength = default(5);
+        int queueLength = default(10);
         bool enableDualAlpha = default(false);
 
     gates:

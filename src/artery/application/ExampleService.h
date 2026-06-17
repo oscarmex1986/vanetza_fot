@@ -66,13 +66,15 @@ class ExampleService : public ItsG5Service
         int genCh[3];
         int calis();
         int casf();
+        int casfCLR();
         int loadBalancing();
         int seqFillCBR();
         int minCBR();
         int minTRC();
         int selch = 0;
         int seltc = 0;
-        double avgQueuePlace = 0.0; 
+        double avgQueuePlace = 0.0;
+        int dccQueueLength = 0; 
 };
 
 } // namespace artery

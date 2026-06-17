@@ -60,6 +60,7 @@ ExampleService::ExampleService()
 	genCh[1] = 0;
 	genCh[2] = 0;
 
+
 }
 
 ExampleService::~ExampleService()
@@ -88,12 +89,16 @@ void ExampleService::initialize()
 	m_self_msg = new cMessage("Example Service");
 	subscribe(scSignalCamReceived);
 	mAliSelection = par("aliSelection");
-	if(mAliSelection > 3 || mAliSelection < 0) mAliSelection = 0;
+	if(mAliSelection > 5 || mAliSelection < 0) mAliSelection = 0;
 	mSeqFillTh = par("seqFillThreshold");
 	mCasfTh = par("casfThreshold");
 	tcPrim = par("tcPrimary");
 	tcAlt = par("tcAlternate");
 	genRate = par("genRate");
+
+	cModule* dccEnity = getModuleByPath("^.^.vanetza[0].dcc");
+	if(!dccEnity) throw cRuntimeError("DCC module not found");
+	dccQueueLength = dccEnity->par("queueLength");
 
 	scheduleAt(simTime() + 1.0, m_self_msg);
 }
@@ -319,6 +324,45 @@ int ExampleService::casf()
 	return selectedChannel; 
 }
 
+int ExampleService::casfCLR()
+{
+	double channelsDcc[3][3];
+
+	channelsDcc[0][0] = 180;
+	channelsDcc[0][1] = getCbr((int)channelsDcc[0][0]);
+	channelsDcc[0][2] = getQueueOccupancy((int)channelsDcc[0][0],tcPrim);
+	channelsDcc[1][0] = 172;
+	channelsDcc[1][1] = getCbr((int)channelsDcc[1][0]);
+	channelsDcc[1][2] = getQueueOccupancy((int)channelsDcc[1][0],tcAlt);
+	channelsDcc[2][0] = 176;
+	channelsDcc[2][1] = getCbr((int)channelsDcc[2][0]);
+	channelsDcc[2][2] = getQueueOccupancy((int)channelsDcc[2][0],tcAlt);
+	
+	int selectedChannel;
+	
+	int randomizer = intuniform(0,2);
+
+	selectedChannel = (int)channelsDcc[0][0];
+	selch = 0;
+	if(channelsDcc[0][1] > mSeqFillTh && channelsDcc[0][2] < dccQueueLength){
+		if(channelsDcc[1][1] < mSeqFillTh && channelsDcc[1][2] < dccQueueLength){ 
+			selectedChannel = (int)channelsDcc[1][0];
+			selch = 1;
+		} else {
+			if(channelsDcc[2][1] < mSeqFillTh && channelsDcc[2][2] < dccQueueLength){
+				selectedChannel = (int)channelsDcc[2][0];
+				selch = 2;
+			} else {
+				selch = randomizer;
+				selectedChannel = (int)channelsDcc[randomizer][0];
+			}
+		}
+	}
+
+	return selectedChannel; 
+}
+
+
 void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 {
 	if((T_now - mLastExaTimestamp) >= mGenExa){
@@ -336,6 +380,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 		if (mAliSelection == 3) selectedChannel = casf();
 		if (mAliSelection == 4) selectedChannel = minCBR();
 		if (mAliSelection == 5) selectedChannel = minTRC();
+		if (mAliSelection == 6) selectedChannel = casfCLR();
 		
 		/*
 		*/

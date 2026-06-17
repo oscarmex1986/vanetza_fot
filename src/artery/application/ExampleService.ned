@@ -25,18 +25,19 @@ simple ExampleService like ItsG5Service
         // 3: Time-based CASF
         // 4: Choose the ALI with the lowest CLR
         // 5: Choose the ALI with the shortest TRC
-        int aliSelection = default(0);
+        // 6: CLR-based CASF
+        int aliSelection = default(6);
         
         // At which CLR rate shall secondary channels be turned on
         double seqFillThreshold = default(0.60);
 
         // We consider a TRC of 20Hz and queue size of 5
         // Thus 0.050 * 5 plus a TRC is 300ms
-        double casfThreshold @unit(s) = default(0.3s);  
+        double casfThreshold @unit(s) = default(0.550s);  
 
         int messageSize = default(320);
-        int tcPrimary = default(3);
-        int tcAlternate = default(2);
+        int tcPrimary = default(2);
+        int tcAlternate = default(0);
 
         volatile double genRate = exponential(0.025);
 }
