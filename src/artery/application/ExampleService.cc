@@ -89,7 +89,7 @@ void ExampleService::initialize()
 	m_self_msg = new cMessage("Example Service");
 	subscribe(scSignalCamReceived);
 	mAliSelection = par("aliSelection");
-	if(mAliSelection > 5 || mAliSelection < 0) mAliSelection = 0;
+	if(mAliSelection > 6 || mAliSelection < 0) mAliSelection = 0;
 	mSeqFillTh = par("seqFillThreshold");
 	mCasfTh = par("casfThreshold");
 	tcPrim = par("tcPrimary");
