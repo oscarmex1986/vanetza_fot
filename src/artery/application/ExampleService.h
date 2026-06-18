@@ -74,6 +74,7 @@ class ExampleService : public ItsG5Service
         int selch = 0;
         int seltc = 0;
         double avgQueuePlace = 0.0;
+        double queueTrigger = 0.5;
         int dccQueueLength = 0; 
 };
 

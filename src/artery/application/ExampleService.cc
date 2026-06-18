@@ -95,6 +95,7 @@ void ExampleService::initialize()
 	tcPrim = par("tcPrimary");
 	tcAlt = par("tcAlternate");
 	genRate = par("genRate");
+	queueTrigger =  par("queueFactor");
 
 	cModule* dccEnity = getModuleByPath("^.^.vanetza[0].dcc");
 	if(!dccEnity) throw cRuntimeError("DCC module not found");
@@ -344,12 +345,12 @@ int ExampleService::casfCLR()
 
 	selectedChannel = (int)channelsDcc[0][0];
 	selch = 0;
-	if(channelsDcc[0][1] > mSeqFillTh && channelsDcc[0][2] < dccQueueLength){
-		if(channelsDcc[1][1] < mSeqFillTh && channelsDcc[1][2] < dccQueueLength){ 
+	if(channelsDcc[0][1] > mSeqFillTh && channelsDcc[0][2] < (dccQueueLength * queueTrigger)){
+		if(channelsDcc[1][1] < mSeqFillTh && channelsDcc[1][2] < (dccQueueLength * queueTrigger)){ 
 			selectedChannel = (int)channelsDcc[1][0];
 			selch = 1;
 		} else {
-			if(channelsDcc[2][1] < mSeqFillTh && channelsDcc[2][2] < dccQueueLength){
+			if(channelsDcc[2][1] < mSeqFillTh && channelsDcc[2][2] < (dccQueueLength * queueTrigger)){
 				selectedChannel = (int)channelsDcc[2][0];
 				selch = 2;
 			} else {

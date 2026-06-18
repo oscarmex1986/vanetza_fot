@@ -29,11 +29,12 @@ simple ExampleService like ItsG5Service
         int aliSelection = default(6);
         
         // At which CLR rate shall secondary channels be turned on
-        double seqFillThreshold = default(0.60);
+        double seqFillThreshold = default(0.50);
 
         // We consider a TRC of 20Hz and queue size of 5
         // Thus 0.050 * 5 plus a TRC is 300ms
-        double casfThreshold @unit(s) = default(0.550s);  
+        double casfThreshold @unit(s) = default(0.550s); 
+        double queueFactor = default(0.8); 
 
         int messageSize = default(320);
         int tcPrimary = default(2);
