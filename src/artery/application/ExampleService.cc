@@ -170,7 +170,7 @@ int ExampleService::calis()
 				}
 			}
 		}
-	}
+	
 	selch = -1;
 
 	if(!candidates.empty()){
