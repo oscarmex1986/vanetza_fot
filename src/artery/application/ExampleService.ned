@@ -26,7 +26,7 @@ simple ExampleService like ItsG5Service
         // 4: Choose the ALI with the lowest CLR
         // 5: Choose the ALI with the shortest TRC
         // 6: CLR-based CASF
-        int aliSelection = default(6);
+        int aliSelection = default(2);
         
         // At which CLR rate shall secondary channels be turned on
         double seqFillThreshold = default(0.50);
@@ -38,7 +38,12 @@ simple ExampleService like ItsG5Service
 
         int messageSize = default(320);
         int tcPrimary = default(2);
-        int tcAlternate = default(0);
+        int tcAlternate = default(2);
 
-        volatile double genRate = exponential(0.025);
+        volatile double genRate = exponential(0.05);
+
+        // Policy for when FCLs are not met
+        // 0: Use any channel
+        // 1: Discard the packet
+        int handlingPolicy = default(0);
 }

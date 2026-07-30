@@ -63,7 +63,7 @@ class ExampleService : public ItsG5Service
         int tcAlt = 0;
         int lastChannel;
         long roundRobin;
-        int genCh[3];
+        int genCh[4];
         int calis();
         int casf();
         int casfCLR();
@@ -75,7 +75,8 @@ class ExampleService : public ItsG5Service
         int seltc = 0;
         double avgQueuePlace = 0.0;
         double queueTrigger = 0.5;
-        int dccQueueLength = 0; 
+        int dccQueueLength = 0;
+        int mdcPolicy = 0;
 };
 
 } // namespace artery

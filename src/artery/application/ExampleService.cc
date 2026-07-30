@@ -51,7 +51,7 @@ ExampleService::ExampleService()
 		recFlagEs = 1;
 		
 		myfile3 = fopen("SentExaCh.csv", "w");
-		fprintf(myfile3, "%s,%s,%s,%s,%s\n","nodeName","ch180","ch172","ch176","avgPlace");
+		fprintf(myfile3, "%s,%s,%s,%s,%s,%s\n","nodeName","ch180","ch172","ch176","Discarded","avgPlace");
 		fclose(myfile3);
 	}
 	lastChannel = 0;
@@ -59,6 +59,7 @@ ExampleService::ExampleService()
 	genCh[0] = 0;
 	genCh[1] = 0;
 	genCh[2] = 0;
+	genCh[3] = 0;
 
 
 }
@@ -96,6 +97,7 @@ void ExampleService::initialize()
 	tcAlt = par("tcAlternate");
 	genRate = par("genRate");
 	queueTrigger =  par("queueFactor");
+	mdcPolicy = par("handlingPolicy");
 
 	cModule* dccEnity = getModuleByPath("^.^.vanetza[0].dcc");
 	if(!dccEnity) throw cRuntimeError("DCC module not found");
@@ -108,7 +110,7 @@ void ExampleService::finish()
 {
 	// you could record some scalars at this point
 	myfile3 = fopen("SentExaCh.csv", "a");
-	fprintf(myfile3, "%s,%d,%d,%d,%f\n",findHost()->getFullName(),genCh[0],genCh[1],genCh[2],avgQueuePlace/(genCh[0]+genCh[1]+genCh[2]));
+	fprintf(myfile3, "%s,%d,%d,%d,%d,%f\n",findHost()->getFullName(),genCh[0],genCh[1],genCh[2],genCh[3],avgQueuePlace/(genCh[0]+genCh[1]+genCh[2]));
 	fclose(myfile3);
 	ItsG5Service::finish();
 }
@@ -130,36 +132,54 @@ void ExampleService::trigger()
 
 int ExampleService::calis()
 {
-	double channelsDcc[3][2];
+	double channelsDcc[3][3];
 
 	channelsDcc[0][0] = 180;
 	channelsDcc[0][1] = getQueueOccupancy((int)channelsDcc[0][0],tcPrim) * SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim)) + SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim)) + SIMTIME_DBL(genGot((int)channelsDcc[0][0],tcPrim));
+	channelsDcc[0][2] = getCbr((int)channelsDcc[0][0]);
 	channelsDcc[1][0] = 172;
 	channelsDcc[1][1] = getQueueOccupancy((int)channelsDcc[1][0],tcAlt) * SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt)) + SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt)) + SIMTIME_DBL(genGot((int)channelsDcc[1][0],tcAlt));
+	channelsDcc[1][2] = getCbr((int)channelsDcc[1][0]);
 	channelsDcc[2][0] = 176;
 	channelsDcc[2][1] = getQueueOccupancy((int)channelsDcc[2][0],tcAlt) * SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt)) + SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt)) + SIMTIME_DBL(genGot((int)channelsDcc[2][0],tcAlt));
-	
-	int selectedChannel;
+	channelsDcc[2][2] = getCbr((int)channelsDcc[2][0]);
+
+	int selectedChannel = -1;
 	std::vector<int> candidates; 
 	int randomizer = intuniform(0,2);
 	
 	selectedChannel = (int)channelsDcc[randomizer][0];
 	double minDelay = channelsDcc[randomizer][1];
+	double candidateCBR = channelsDcc[randomizer][2];
 	for(int i = 0; i < 3 ; i++){
 		if(channelsDcc[i][1] < minDelay){
 			minDelay = channelsDcc[i][1];
+			candidateCBR = channelsDcc[i][2];
 			candidates.clear();
 			candidates.push_back(channelsDcc[i][0]);
 		} else {
 			if(channelsDcc[i][1] == minDelay){
-				candidates.push_back(channelsDcc[i][0]);	
+				if(channelsDcc[i][2] < candidateCBR){
+					minDelay = channelsDcc[i][1];
+					candidateCBR = channelsDcc[i][2];
+					candidates.clear();
+					candidates.push_back(channelsDcc[i][0]);
+				} else {
+					candidates.push_back(channelsDcc[i][0]);
+					}	
+				}
 			}
 		}
 	}
-	selectedChannel = candidates[intuniform(0,candidates.size()-1)];
-	if (selectedChannel == channelsDcc[0][0]) selch = 0;
-	if (selectedChannel == channelsDcc[1][0]) selch = 1;
-	if (selectedChannel == channelsDcc[2][0]) selch = 2;
+	selch = -1;
+
+	if(!candidates.empty()){
+		selectedChannel = candidates[intuniform(0,candidates.size()-1)];
+		if (selectedChannel == channelsDcc[0][0]) selch = 0;
+		if (selectedChannel == channelsDcc[1][0]) selch = 1;
+		if (selectedChannel == channelsDcc[2][0]) selch = 2;
+	}
+	
 	return selectedChannel;
 }
 
@@ -281,8 +301,13 @@ int ExampleService::seqFillCBR()
 				selectedChannel = (int)channelsDcc[2][0];
 				selch = 2;
 			} else {
-				selch = randomizer;
-				selectedChannel = (int)channelsDcc[randomizer][0];
+				if(mdcPolicy == 0){
+					selch = randomizer;
+					selectedChannel = (int)channelsDcc[randomizer][0];
+				} else {
+					selch = -1;
+					selectedChannel = -1;
+				}
 			}
 		}
 	}
@@ -316,8 +341,13 @@ int ExampleService::casf()
 				selectedChannel = (int)channelsDcc[2][0];
 				selch = 2;
 			} else {
-				selch = randomizer;
-				selectedChannel = (int)channelsDcc[randomizer][0];
+				if(mdcPolicy == 0){
+					selch = randomizer;
+					selectedChannel = (int)channelsDcc[randomizer][0];
+				} else {
+					selch = -1;
+					selectedChannel = -1;
+				}
 			}
 		}
 	}
@@ -354,8 +384,14 @@ int ExampleService::casfCLR()
 				selectedChannel = (int)channelsDcc[2][0];
 				selch = 2;
 			} else {
-				selch = randomizer;
-				selectedChannel = (int)channelsDcc[randomizer][0];
+				if(mdcPolicy == 0){
+					selch = randomizer;
+					selectedChannel = (int)channelsDcc[randomizer][0];
+				} else {
+					selch = -1;
+					selectedChannel = -1;
+				}
+				
 			}
 		}
 	}
@@ -391,34 +427,38 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 			seltc = tcAlt;
 		} 
 
+		if(selectedChannel != -1){
+			int packetSize = par("messageSize");
+			auto network = networks.select(selectedChannel);
+			btp::DataRequestB req;
+			// use same port number as configured for listening on this channel
+			req.destination_port = host_cast(getPortNumber(selectedChannel));
+			network = networks.select(selectedChannel);
+			auto netifc = network;
+			req.gn.transport_type = geonet::TransportType::SHB;
+			req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP3));
+			if(seltc == 0){
+				req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP0));
+				} else if(seltc == 1){
+					req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP1));
+				} else if(seltc == 2){
+					req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP2));
+				}
+			avgQueuePlace += getQueueOccupancy(selectedChannel,seltc) + 1.0;
+			req.gn.communication_profile = geonet::CommunicationProfile::ITS_G5;
+			req.gn.its_aid = example_its_aid;
 
-		int packetSize = par("messageSize");
-		auto network = networks.select(selectedChannel);
-		btp::DataRequestB req;
-		// use same port number as configured for listening on this channel
-		req.destination_port = host_cast(getPortNumber(selectedChannel));
-		network = networks.select(selectedChannel);
-		auto netifc = network;
-		req.gn.transport_type = geonet::TransportType::SHB;
-		req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP3));
-		if(seltc == 0){
-			req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP0));
-			} else if(seltc == 1){
-				req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP1));
-			} else if(seltc == 2){
-				req.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP2));
-			}
-		avgQueuePlace += getQueueOccupancy(selectedChannel,seltc) + 1.0;
-		req.gn.communication_profile = geonet::CommunicationProfile::ITS_G5;
-		req.gn.its_aid = example_its_aid;
-
-		cPacket* packet = new cPacket("Example Service Packet");
-		packet->setByteLength(packetSize);
-		//std::cout << findHost()->getFullName() << "Transmitting in channel" << selectedChannel << "\n";
-				
-		genCh[selch] = genCh[selch] + 1;
-		// send packet on specific network interface
-		request(req, packet, network.get());
+			cPacket* packet = new cPacket("Example Service Packet");
+			packet->setByteLength(packetSize);
+			//std::cout << findHost()->getFullName() << "Transmitting in channel" << selectedChannel << "\n";
+					
+			genCh[selch] = genCh[selch] + 1;
+			// send packet on specific network interface
+			request(req, packet, network.get());
+		} else {
+			genCh[4] = genCh[4] + 1;
+		}
+		
 		mLastExaTimestamp = T_now;
 		mGenExa = std::min(1.0,std::max(genRate,0.001));
 		genRate = par("genRate");
