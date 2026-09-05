@@ -77,6 +77,8 @@ class ExampleService : public ItsG5Service
         double queueTrigger = 0.5;
         int dccQueueLength = 0;
         int mdcPolicy = 0;
+        int countDesired = 0;
+        int countSent = 0;
 };
 
 } // namespace artery

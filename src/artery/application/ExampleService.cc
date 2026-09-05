@@ -51,7 +51,7 @@ ExampleService::ExampleService()
 		recFlagEs = 1;
 		
 		myfile3 = fopen("SentExaCh.csv", "w");
-		fprintf(myfile3, "%s,%s,%s,%s,%s,%s\n","nodeName","ch180","ch172","ch176","Discarded","avgPlace");
+		fprintf(myfile3, "%s,%s,%s,%s,%s,%s,%s\n","nodeName","ch180","ch172","ch176","Triggered","Discarded","avgPlace");
 		fclose(myfile3);
 	}
 	lastChannel = 0;
@@ -110,7 +110,7 @@ void ExampleService::finish()
 {
 	// you could record some scalars at this point
 	myfile3 = fopen("SentExaCh.csv", "a");
-	fprintf(myfile3, "%s,%d,%d,%d,%d,%f\n",findHost()->getFullName(),genCh[0],genCh[1],genCh[2],genCh[3],avgQueuePlace/(genCh[0]+genCh[1]+genCh[2]));
+	fprintf(myfile3, "%s,%d,%d,%d,%d,%d,%f\n",findHost()->getFullName(),genCh[0],genCh[1],genCh[2],countDesired,genCh[3],avgQueuePlace/(genCh[0]+genCh[1]+genCh[2]));
 	fclose(myfile3);
 	ItsG5Service::finish();
 }
@@ -155,26 +155,29 @@ int ExampleService::calis()
 		if(channelsDcc[i][1] < minDelay){
 			minDelay = channelsDcc[i][1];
 			candidateCBR = channelsDcc[i][2];
+			std::cout << "Local min " << candidateCBR << "\n";
+			std::cout << "Local min " << minDelay << "s\n";
 			candidates.clear();
 			candidates.push_back(channelsDcc[i][0]);
 		} else {
 			if(channelsDcc[i][1] == minDelay){
-				if(channelsDcc[i][2] < candidateCBR){
+				if((int)channelsDcc[i][2] < candidateCBR){
 					minDelay = channelsDcc[i][1];
 					candidateCBR = channelsDcc[i][2];
 					candidates.clear();
 					candidates.push_back(channelsDcc[i][0]);
-				} else {
-					candidates.push_back(channelsDcc[i][0]);
-					}	
-				}
+				} else if((int)channelsDcc[i][2] == candidateCBR) {
+					 candidates.push_back(channelsDcc[i][0]);
+				}	
 			}
 		}
+	}
 	
 	selch = -1;
 
 	if(!candidates.empty()){
-		selectedChannel = candidates[intuniform(0,candidates.size()-1)];
+		int randomCandidate = intuniform(0,candidates.size()-1);
+		selectedChannel = candidates[randomCandidate];
 		if (selectedChannel == channelsDcc[0][0]) selch = 0;
 		if (selectedChannel == channelsDcc[1][0]) selch = 1;
 		if (selectedChannel == channelsDcc[2][0]) selch = 2;
@@ -304,9 +307,12 @@ int ExampleService::seqFillCBR()
 				if(mdcPolicy == 0){
 					selch = randomizer;
 					selectedChannel = (int)channelsDcc[randomizer][0];
-				} else {
+				} else if(mdcPolicy == 1){
 					selch = -1;
 					selectedChannel = -1;
+				} else if(mdcPolicy == 2){
+					selch = minCBR();
+					selectedChannel = selch;
 				}
 			}
 		}
@@ -427,6 +433,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 			seltc = tcAlt;
 		} 
 
+		countDesired++;
 		if(selectedChannel != -1){
 			int packetSize = par("messageSize");
 			auto network = networks.select(selectedChannel);
@@ -456,7 +463,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 			// send packet on specific network interface
 			request(req, packet, network.get());
 		} else {
-			genCh[4] = genCh[4] + 1;
+			genCh[3] = genCh[3] + 1;
 		}
 		
 		mLastExaTimestamp = T_now;
