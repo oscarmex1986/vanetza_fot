@@ -155,8 +155,6 @@ int ExampleService::calis()
 		if(channelsDcc[i][1] < minDelay){
 			minDelay = channelsDcc[i][1];
 			candidateCBR = channelsDcc[i][2];
-			std::cout << "Local min " << candidateCBR << "\n";
-			std::cout << "Local min " << minDelay << "s\n";
 			candidates.clear();
 			candidates.push_back(channelsDcc[i][0]);
 		} else {

@@ -26,7 +26,7 @@ simple ExampleService like ItsG5Service
         // 4: Choose the ALI with the lowest CLR
         // 5: Choose the ALI with the shortest TRC
         // 6: CLR-based CASF
-        int aliSelection = default(6);
+        int aliSelection = default(2);
         
         // At which CLR rate shall secondary channels be turned on
         double seqFillThreshold = default(0.50);
