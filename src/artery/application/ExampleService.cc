@@ -136,13 +136,13 @@ int ExampleService::calis()
 
 	channelsDcc[0][0] = 180;
 	channelsDcc[0][1] = getQueueOccupancy((int)channelsDcc[0][0],tcPrim) * SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim)) + SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim)) + SIMTIME_DBL(genGot((int)channelsDcc[0][0],tcPrim));
-	channelsDcc[0][2] = getCbr((int)channelsDcc[0][0]);
+	channelsDcc[0][2] = getCbr((int)channelsDcc[0][0])*1000;
 	channelsDcc[1][0] = 172;
 	channelsDcc[1][1] = getQueueOccupancy((int)channelsDcc[1][0],tcAlt) * SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt)) + SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt)) + SIMTIME_DBL(genGot((int)channelsDcc[1][0],tcAlt));
-	channelsDcc[1][2] = getCbr((int)channelsDcc[1][0]);
+	channelsDcc[1][2] = getCbr((int)channelsDcc[1][0])*1000;
 	channelsDcc[2][0] = 176;
 	channelsDcc[2][1] = getQueueOccupancy((int)channelsDcc[2][0],tcAlt) * SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt)) + SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt)) + SIMTIME_DBL(genGot((int)channelsDcc[2][0],tcAlt));
-	channelsDcc[2][2] = getCbr((int)channelsDcc[2][0]);
+	channelsDcc[2][2] = getCbr((int)channelsDcc[2][0])*1000;
 
 	int selectedChannel = -1;
 	std::vector<int> candidates; 
@@ -150,7 +150,7 @@ int ExampleService::calis()
 	
 	selectedChannel = (int)channelsDcc[randomizer][0];
 	double minDelay = channelsDcc[randomizer][1];
-	double candidateCBR = channelsDcc[randomizer][2];
+	int candidateCBR = (int)channelsDcc[randomizer][2];
 	for(int i = 0; i < 3 ; i++){
 		if(channelsDcc[i][1] < minDelay){
 			minDelay = channelsDcc[i][1];
@@ -161,7 +161,7 @@ int ExampleService::calis()
 			if(channelsDcc[i][1] == minDelay){
 				if((int)channelsDcc[i][2] < candidateCBR){
 					minDelay = channelsDcc[i][1];
-					candidateCBR = channelsDcc[i][2];
+					candidateCBR = (int)channelsDcc[i][2];
 					candidates.clear();
 					candidates.push_back(channelsDcc[i][0]);
 				} else if((int)channelsDcc[i][2] == candidateCBR) {

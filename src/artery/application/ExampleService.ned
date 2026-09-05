@@ -40,11 +40,11 @@ simple ExampleService like ItsG5Service
         int tcPrimary = default(2);
         int tcAlternate = default(2);
 
-        volatile double genRate = exponential(0.025);
+        volatile double genRate = exponential(0.100);
 
         // Policy for when FCLs are not met
         // 0: Use a random channel
         // 1: Discard the packet
         // 2: Use the channel with the minimum CLR
-        int handlingPolicy = default(2);
+        int handlingPolicy = default(0);
 }
