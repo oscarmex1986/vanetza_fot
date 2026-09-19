@@ -37,6 +37,7 @@ namespace artery
 
 FILE *myfile3; //Registra RecExa.csv
 FILE *myfile5; //Registra RecExaCh.csv
+FILE *myfile7; //Registra MessageTriggerCLR.csv
 
 static const simsignal_t scSignalCamReceived = cComponent::registerSignal("CamReceived");
 
@@ -50,9 +51,13 @@ ExampleService::ExampleService()
 		fclose(myfile3);
 		recFlagEs = 1;
 		
-		myfile3 = fopen("SentExaCh.csv", "w");
-		fprintf(myfile3, "%s,%s,%s,%s,%s,%s,%s\n","nodeName","ch180","ch172","ch176","Triggered","Discarded","avgPlace");
-		fclose(myfile3);
+		myfile5 = fopen("SentExaCh.csv", "w");
+		fprintf(myfile5, "%s,%s,%s,%s,%s,%s,%s\n","nodeName","ch180","ch172","ch176","Triggered","Discarded","avgPlace");
+		fclose(myfile5);
+		
+		myfile7 = fopen("MessageTriggerCLR.csv", "w");
+		fprintf(myfile7, "%s,%s,%s,%s,%s,%s\n","nodeName","timestamp","180","172","176","Selected");
+		fclose(myfile7);
 	}
 	lastChannel = 0;
 	roundRobin = intuniform(0,2);
@@ -464,6 +469,10 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 			genCh[3] = genCh[3] + 1;
 		}
 		
+		myfile7 = fopen("MessageTriggerCLR.csv", "a");
+		fprintf(myfile7, "%s,%f,%f,%f,%f,%d\n",findHost()->getFullName(),SIMTIME_DBL(simTime()),getCbr(180),getCbr(172),getCbr(176),selectedChannel);
+		fclose(myfile7);
+
 		mLastExaTimestamp = T_now;
 		mGenExa = std::min(1.0,std::max(genRate,0.001));
 		genRate = par("genRate");

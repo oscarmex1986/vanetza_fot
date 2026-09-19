@@ -37,10 +37,10 @@ simple ExampleService like ItsG5Service
         double queueFactor = default(0.8); 
 
         int messageSize = default(320);
-        int tcPrimary = default(2);
-        int tcAlternate = default(2);
+        int tcPrimary = default(3);
+        int tcAlternate = default(0);
 
-        volatile double genRate = exponential(0.100);
+        volatile double genRate = exponential(0.025);
 
         // Policy for when FCLs are not met
         // 0: Use a random channel
