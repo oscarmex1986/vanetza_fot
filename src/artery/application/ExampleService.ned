@@ -40,9 +40,15 @@ simple ExampleService like ItsG5Service
         int tcPrimary = default(3);
         int tcAlternate = default(0);
 
-        volatile double genRate = exponential(0.025);
+        volatile double genRate = exponential(0.020);
 
-        // Policy for when FCLs are not met
+        // Policy for message generation when messages/sec
+        // conditions are not met
+        // 0: Do not generate and wait
+        // 1: Generate anyway
+        int ratePolicy = default(2); 
+
+        // Policy for when DCC-related FCLs are not met
         // 0: Use a random channel
         // 1: Discard the packet
         // 2: Use the channel with the minimum CLR

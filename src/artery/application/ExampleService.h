@@ -19,6 +19,7 @@
 #include "artery/application/ItsG5Service.h"
 #include "artery/application/NetworkInterface.h"
 #include "artery/application/ItsG5BaseService.h"
+#include "artery/application/CaService.h"
 #include "artery/utility/Channel.h"
 #include "artery/utility/Geometry.h"
 #include <vanetza/asn1/cam.hpp>
@@ -52,6 +53,7 @@ class ExampleService : public ItsG5Service
 
     private:
         void checkTriggeringConditions(const omnetpp::SimTime&);
+        void sendExample(const omnetpp::SimTime&);
         omnetpp::cMessage* m_self_msg;
         omnetpp::SimTime mLastExaTimestamp;
         omnetpp::SimTime mGenExa;
@@ -79,6 +81,9 @@ class ExampleService : public ItsG5Service
         int mdcPolicy = 0;
         int countDesired = 0;
         int countSent = 0;
+        CaService* mCaService = nullptr;
+        double mRequestedCamRate = 0.0;
+        double mRequestedExaRate = 0.0;
 };
 
 } // namespace artery

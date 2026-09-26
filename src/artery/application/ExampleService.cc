@@ -104,6 +104,11 @@ void ExampleService::initialize()
 	queueTrigger =  par("queueFactor");
 	mdcPolicy = par("handlingPolicy");
 
+	cModule* app = getParentModule();
+	mCaService = dynamic_cast<CaService*>(app->getSubmodule("CaService"));
+	mRequestedCamRate = mCaService->getRequestedCamRate();
+	mRequestedExaRate = 1.0;
+
 	cModule* dccEnity = getModuleByPath("^.^.vanetza[0].dcc");
 	if(!dccEnity) throw cRuntimeError("DCC module not found");
 	dccQueueLength = dccEnity->par("queueLength");
@@ -411,8 +416,29 @@ int ExampleService::casfCLR()
 
 void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 {
-	if((T_now - mLastExaTimestamp) >= mGenExa){
-		// use an ITS-AID reserved for testing purposes
+	const SimTime T_elapsed = T_now - mLastExaTimestamp;
+	if(T_elapsed >= mGenExa){
+
+		mRequestedCamRate = mCaService->getRequestedCamRate();
+		mRequestedExaRate = 1.0 / T_elapsed.dbl();
+		double availableRate = ((1.0 / genInterval(180,tcPrim)) + (1.0 / genInterval(172,tcAlt)) + (1.0 / genInterval(176,tcAlt))) - mRequestedCamRate;
+		bool decisionByRate = mRequestedExaRate < availableRate;
+	
+		int ratePol = par("ratePolicy");
+		if(ratePol != 0){
+			sendExample(T_now);	
+		} else {
+			if (decisionByRate) sendExample(T_now);
+		}
+				
+			
+		
+	}
+}
+
+void ExampleService::sendExample(const SimTime& T_now)
+{
+	// use an ITS-AID reserved for testing purposes
 		static const vanetza::ItsAid example_its_aid = 16480;
 
 		auto& mco = getFacilities().get_const<MultiChannelPolicy>();
@@ -475,11 +501,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 
 		mLastExaTimestamp = T_now;
 		mGenExa = std::min(1.0,std::max(genRate,0.001));
-		genRate = par("genRate");
-				
-			
-		
-	}
+		genRate = par("genRate");	
 }
 
 void ExampleService::receiveSignal(cComponent* source, simsignal_t signal, cObject*, cObject*)

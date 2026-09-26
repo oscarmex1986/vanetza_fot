@@ -30,6 +30,7 @@ class CaService : public ItsG5BaseService
 		void initialize() override;
 		void indicate(const vanetza::btp::DataIndication&, std::unique_ptr<vanetza::UpPacket>) override;
 		void trigger() override;
+		double getRequestedCamRate() const;
 
 	private:
 		void checkTriggeringConditions(const omnetpp::SimTime&);

@@ -1625,6 +1625,7 @@ src/artery/CMakeFiles/core.dir/application/ExampleService.cc.o: ../extern/vanetz
 src/artery/CMakeFiles/core.dir/application/ExampleService.cc.o: ../extern/vanetza/vanetza/units/time.hpp
 src/artery/CMakeFiles/core.dir/application/ExampleService.cc.o: ../extern/vanetza/vanetza/units/velocity.hpp
 src/artery/CMakeFiles/core.dir/application/ExampleService.cc.o: ../src/artery/application/CaObject.h
+src/artery/CMakeFiles/core.dir/application/ExampleService.cc.o: ../src/artery/application/CaService.h
 src/artery/CMakeFiles/core.dir/application/ExampleService.cc.o: ../src/artery/application/Facilities.h
 src/artery/CMakeFiles/core.dir/application/ExampleService.cc.o: ../src/artery/application/IndicationInterface.h
 src/artery/CMakeFiles/core.dir/application/ExampleService.cc.o: ../src/artery/application/ItsG5BaseService.h
