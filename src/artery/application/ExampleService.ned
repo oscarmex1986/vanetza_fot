@@ -46,7 +46,7 @@ simple ExampleService like ItsG5Service
         // conditions are not met
         // 0: Do not generate and wait
         // 1: Generate anyway
-        int ratePolicy = default(2); 
+        int ratePolicy = default(1); 
 
         // Policy for when DCC-related FCLs are not met
         // 0: Use a random channel

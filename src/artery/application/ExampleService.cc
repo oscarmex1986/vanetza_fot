@@ -420,7 +420,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 	if(T_elapsed >= mGenExa){
 
 		mRequestedCamRate = mCaService->getRequestedCamRate();
-		mRequestedExaRate = 1.0 / T_elapsed.dbl();
+		mRequestedExaRate = 1.0 / mGenExa.dbl();
 		double availableRate = ((1.0 / genInterval(180,tcPrim)) + (1.0 / genInterval(172,tcAlt)) + (1.0 / genInterval(176,tcAlt))) - mRequestedCamRate;
 		bool decisionByRate = mRequestedExaRate < availableRate;
 	
@@ -433,6 +433,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 			} else {
 				genRate = par("genRate");
 				mGenExa = std::min(1.0,std::max(genRate,0.001));
+				mLastExaTimestamp = T_now;
 			}
 		}
 				
