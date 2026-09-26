@@ -428,7 +428,12 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 		if(ratePol != 0){
 			sendExample(T_now);	
 		} else {
-			if (decisionByRate) sendExample(T_now);
+			if (decisionByRate) {
+				sendExample(T_now);
+			} else {
+				genRate = par("genRate");
+				mGenExa = std::min(1.0,std::max(genRate,0.001));
+			}
 		}
 				
 			
