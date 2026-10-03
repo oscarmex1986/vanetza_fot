@@ -206,7 +206,7 @@ void CaService::checkTriggeringConditions(const SimTime& T_now)
 		if (T_elapsed >= T_GenCamDcc) {
 			if (mFixedRate) {
 				flagProcedence = 3;
-				mGenCam = T_GenCamDcc;
+				//mGenCam = T_GenCamDcc;
 				sendCam(T_now, T_elapsed);
 			} else if (checkHeadingDelta() || checkPositionDelta() || checkSpeedDelta()) {
 				flagProcedence = 1;
@@ -403,6 +403,8 @@ void CaService::sendCam(const SimTime& T_now, const SimTime& T_elapsed)
 			mLastCamHeading = mLastReqHeading;	
 		
 	} else if(flagProcedence == 1){
+			mGenCam = std::min(T_elapsed, mGenCamMax);
+		} else if(flagProcedence == 3){
 			mGenCam = std::min(T_elapsed, mGenCamMax);
 		}
 }

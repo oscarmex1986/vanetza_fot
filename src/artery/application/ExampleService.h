@@ -53,7 +53,7 @@ class ExampleService : public ItsG5Service
 
     private:
         void checkTriggeringConditions(const omnetpp::SimTime&);
-        void sendExample(const omnetpp::SimTime&);
+        void sendExample(const omnetpp::SimTime&, int);
         omnetpp::cMessage* m_self_msg;
         omnetpp::SimTime mLastExaTimestamp;
         omnetpp::SimTime mGenExa;
@@ -66,13 +66,12 @@ class ExampleService : public ItsG5Service
         int lastChannel;
         long roundRobin;
         int genCh[4];
-        int calis();
-        int casf();
-        int casfCLR();
-        int loadBalancing();
-        int seqFillCBR();
-        int minCBR();
-        int minTRC();
+        int calis(std::vector<int>);
+        int casf(std::vector<int>);
+        int loadBalancing(std::vector<int>);
+        int seqFillCBR(std::vector<int>);
+        int minCBR(std::vector<int>);
+        int minTRC(std::vector<int>);
         int selch = 0;
         int seltc = 0;
         double avgQueuePlace = 0.0;
@@ -81,6 +80,7 @@ class ExampleService : public ItsG5Service
         int mdcPolicy = 0;
         int countDesired = 0;
         int countSent = 0;
+        int occPolicy = 0;
         CaService* mCaService = nullptr;
         double mRequestedCamRate = 0.0;
         double mRequestedExaRate = 0.0;

@@ -95,7 +95,7 @@ void ExampleService::initialize()
 	m_self_msg = new cMessage("Example Service");
 	subscribe(scSignalCamReceived);
 	mAliSelection = par("aliSelection");
-	if(mAliSelection > 6 || mAliSelection < 0) mAliSelection = 0;
+	if(mAliSelection > 5 || mAliSelection < 0) mAliSelection = 0;
 	mSeqFillTh = par("seqFillThreshold");
 	mCasfTh = par("casfThreshold");
 	tcPrim = par("tcPrimary");
@@ -103,6 +103,7 @@ void ExampleService::initialize()
 	genRate = par("genRate");
 	queueTrigger =  par("queueFactor");
 	mdcPolicy = par("handlingPolicy");
+	occPolicy = par("occPolicy");
 
 	cModule* app = getParentModule();
 	mCaService = dynamic_cast<CaService*>(app->getSubmodule("CaService"));
@@ -140,278 +141,291 @@ void ExampleService::trigger()
 	checkTriggeringConditions(simTime());
 }
 
-int ExampleService::calis()
+int ExampleService::calis(std::vector<int> candidateChannels)
 {
-	double channelsDcc[3][3];
-
-	channelsDcc[0][0] = 180;
-	channelsDcc[0][1] = getQueueOccupancy((int)channelsDcc[0][0],tcPrim) * SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim)) + SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim)) + SIMTIME_DBL(genGot((int)channelsDcc[0][0],tcPrim));
-	channelsDcc[0][2] = getCbr((int)channelsDcc[0][0])*1000;
-	channelsDcc[1][0] = 172;
-	channelsDcc[1][1] = getQueueOccupancy((int)channelsDcc[1][0],tcAlt) * SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt)) + SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt)) + SIMTIME_DBL(genGot((int)channelsDcc[1][0],tcAlt));
-	channelsDcc[1][2] = getCbr((int)channelsDcc[1][0])*1000;
-	channelsDcc[2][0] = 176;
-	channelsDcc[2][1] = getQueueOccupancy((int)channelsDcc[2][0],tcAlt) * SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt)) + SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt)) + SIMTIME_DBL(genGot((int)channelsDcc[2][0],tcAlt));
-	channelsDcc[2][2] = getCbr((int)channelsDcc[2][0])*1000;
-
 	int selectedChannel = -1;
-	std::vector<int> candidates; 
-	int randomizer = intuniform(0,2);
-	
-	selectedChannel = (int)channelsDcc[randomizer][0];
-	double minDelay = channelsDcc[randomizer][1];
-	int candidateCBR = (int)channelsDcc[randomizer][2];
-	for(int i = 0; i < 3 ; i++){
-		if(channelsDcc[i][1] < minDelay){
-			minDelay = channelsDcc[i][1];
-			candidateCBR = channelsDcc[i][2];
-			candidates.clear();
-			candidates.push_back(channelsDcc[i][0]);
-		} else {
-			if(channelsDcc[i][1] == minDelay){
-				if((int)channelsDcc[i][2] < candidateCBR){
-					minDelay = channelsDcc[i][1];
-					candidateCBR = (int)channelsDcc[i][2];
-					candidates.clear();
-					candidates.push_back(channelsDcc[i][0]);
-				} else if((int)channelsDcc[i][2] == candidateCBR) {
-					 candidates.push_back(channelsDcc[i][0]);
-				}	
-			}
-		}
-	}
-	
 	selch = -1;
-
-	if(!candidates.empty()){
-		int randomCandidate = intuniform(0,candidates.size()-1);
-		selectedChannel = candidates[randomCandidate];
-		if (selectedChannel == channelsDcc[0][0]) selch = 0;
-		if (selectedChannel == channelsDcc[1][0]) selch = 1;
-		if (selectedChannel == channelsDcc[2][0]) selch = 2;
-	}
-	
-	return selectedChannel;
-}
-
-int ExampleService::minCBR()
-{
-	double channelsDcc[3][2];
-
-	channelsDcc[0][0] = 180;
-	channelsDcc[0][1] = getCbr((int)channelsDcc[0][0]);
-	channelsDcc[1][0] = 172;
-	channelsDcc[1][1] = getCbr((int)channelsDcc[1][0]);
-	channelsDcc[2][0] = 176;
-	channelsDcc[2][1] = getCbr((int)channelsDcc[2][0]);
-	
-	int selectedChannel;
-	std::vector<int> candidates; 
-	int randomizer = intuniform(0,2);
-	
-	selectedChannel = (int)channelsDcc[randomizer][0];
-	double minLoad = channelsDcc[randomizer][1];
-	for(int i = 0; i < 3 ; i++){
-		if(channelsDcc[i][1] < minLoad){
-			minLoad = channelsDcc[i][1];
-			candidates.clear();
-			candidates.push_back(channelsDcc[i][0]);
-		} else {
-			if(channelsDcc[i][1] == minLoad){
-				candidates.push_back(channelsDcc[i][0]);	
-			}
+	if(!candidateChannels.empty()){
+		int n = static_cast<int>(candidateChannels.size());
+		double channelsDcc[n][3];
+		int nCand = 0;
+		
+		for(int i = 0; i < n; i++){
+			int tc = tcAlt;
+			if(candidateChannels[i] == 180) tc = tcPrim;
+			channelsDcc[i][0] = candidateChannels[i];
+			channelsDcc[i][1] = getQueueOccupancy((int)channelsDcc[i][0],tc) * SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc)) + SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc)) + SIMTIME_DBL(genGot((int)channelsDcc[i][0],tc));
+			channelsDcc[i][2] = getCbr((int)channelsDcc[i][0])*1000;
+			nCand++;
 		}
-	}
-	selectedChannel = candidates[intuniform(0,candidates.size()-1)];
-	if (selectedChannel == channelsDcc[0][0]) selch = 0;
-	if (selectedChannel == channelsDcc[1][0]) selch = 1;
-	if (selectedChannel == channelsDcc[2][0]) selch = 2;
-	return selectedChannel;
-}
 
-
-int ExampleService::minTRC()
-{
-	double channelsDcc[3][2];
-
-	channelsDcc[0][0] = 180;
-	channelsDcc[0][1] = SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim));
-	channelsDcc[1][0] = 172;
-	channelsDcc[1][1] = SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt));
-	channelsDcc[2][0] = 176;
-	channelsDcc[2][1] = SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt));
-	
-	int selectedChannel;
-	std::vector<int> candidates; 
-	int randomizer = intuniform(0,2);
-	
-	selectedChannel = (int)channelsDcc[randomizer][0];
-	double minDelay = channelsDcc[randomizer][1];
-	for(int i = 0; i < 3 ; i++){
-		if(channelsDcc[i][1] < minDelay){
-			minDelay = channelsDcc[i][1];
-			candidates.clear();
-			candidates.push_back(channelsDcc[i][0]);
-		} else {
-			if(channelsDcc[i][1] == minDelay){
-				candidates.push_back(channelsDcc[i][0]);	
-			}
-		}
-	}
-	selectedChannel = candidates[intuniform(0,candidates.size()-1)];
-	if (selectedChannel == channelsDcc[0][0]) selch = 0;
-	if (selectedChannel == channelsDcc[1][0]) selch = 1;
-	if (selectedChannel == channelsDcc[2][0]) selch = 2;
-	return selectedChannel;
-}
-
-int ExampleService::loadBalancing()
-{
-	int selectedChannel;
-	double channelsDcc[3];
-
-	channelsDcc[0] = 180;
-	channelsDcc[1] = 172;
-	channelsDcc[2] = 176;
-
-	if(lastChannel == 0){ 
-		selectedChannel = (int)channelsDcc[roundRobin];
-		selch = roundRobin;
-	} else {
-		roundRobin++; 
-		selectedChannel = (int)channelsDcc[roundRobin%3];
-		selch = roundRobin%3;
-	}
-	lastChannel = selectedChannel;
-	return selectedChannel;
-}
-
-int ExampleService::seqFillCBR()
-{
-	double channelsDcc[3][2];
-
-	channelsDcc[0][0] = 180;
-	channelsDcc[0][1] = getCbr((int)channelsDcc[0][0]);
-	channelsDcc[1][0] = 172;
-	channelsDcc[1][1] = getCbr((int)channelsDcc[1][0]);
-	channelsDcc[2][0] = 176;
-	channelsDcc[2][1] = getCbr((int)channelsDcc[2][0]);
-	
-	int selectedChannel;
-	
-	int randomizer = intuniform(0,2);
-
-	selectedChannel = (int)channelsDcc[0][0];
-	selch = 0;
-	if(channelsDcc[0][1] > mSeqFillTh){
-		if(channelsDcc[1][1] < mSeqFillTh){ 
-			selectedChannel = (int)channelsDcc[1][0];
-			selch = 1;
-		} else {
-			if(channelsDcc[2][1] < mSeqFillTh){
-				selectedChannel = (int)channelsDcc[2][0];
-				selch = 2;
+		
+		std::vector<int> candidates; 
+		int randomizer = intuniform(0,nCand-1);
+		
+		selectedChannel = (int)channelsDcc[randomizer][0];
+		double minDelay = channelsDcc[randomizer][1];
+		int candidateCBR = (int)channelsDcc[randomizer][2];
+		for(int i = 0; i < nCand ; i++){
+			if(channelsDcc[i][1] < minDelay){
+				minDelay = channelsDcc[i][1];
+				candidateCBR = channelsDcc[i][2];
+				candidates.clear();
+				candidates.push_back(channelsDcc[i][0]);
 			} else {
-				if(mdcPolicy == 0){
-					selch = randomizer;
-					selectedChannel = (int)channelsDcc[randomizer][0];
-				} else if(mdcPolicy == 1){
-					selch = -1;
-					selectedChannel = -1;
-				} else if(mdcPolicy == 2){
-					selch = minCBR();
-					selectedChannel = selch;
+				if(channelsDcc[i][1] == minDelay){
+					if((int)channelsDcc[i][2] < candidateCBR){
+						minDelay = channelsDcc[i][1];
+						candidateCBR = (int)channelsDcc[i][2];
+						candidates.clear();
+						candidates.push_back(channelsDcc[i][0]);
+					} else if((int)channelsDcc[i][2] == candidateCBR) {
+						 candidates.push_back(channelsDcc[i][0]);
+					}	
 				}
 			}
 		}
+		
+		
+
+		if(!candidates.empty()){
+			int randomCandidate = intuniform(0,candidates.size()-1);
+			selectedChannel = candidates[randomCandidate];
+			if (selectedChannel == 180) selch = 0;
+			if (selectedChannel == 172) selch = 1;
+			if (selectedChannel == 176) selch = 2;
+		}/**/
+	}
+	
+	return selectedChannel;
+}
+
+int ExampleService::minCBR(std::vector<int> candidateChannels)
+{
+	
+	int selectedChannel = -1;
+	selch = -1;
+	if(!candidateChannels.empty()){
+		int n = static_cast<int>(candidateChannels.size());
+		double channelsDcc[n][2];
+		int nCand = 0;
+		
+		for(int i = 0; i < n; i++){
+			channelsDcc[i][0] = candidateChannels[i];
+			channelsDcc[i][1] = getCbr((int)channelsDcc[i][0]);
+			nCand++;
+		}
+
+
+		int selectedChannel;
+		std::vector<int> candidates; 
+		int randomizer = intuniform(0,nCand);
+	
+		selectedChannel = (int)channelsDcc[randomizer][0];
+		double minLoad = channelsDcc[randomizer][1];
+		for(int i = 0; i < 3 ; i++){
+			if(channelsDcc[i][1] < minLoad){
+				minLoad = channelsDcc[i][1];
+				candidates.clear();
+				candidates.push_back(channelsDcc[i][0]);
+			} else {
+				if(channelsDcc[i][1] == minLoad){
+					candidates.push_back(channelsDcc[i][0]);	
+				}
+			}
+		}
+		if(!candidates.empty()){
+			int randomCandidate = intuniform(0,candidates.size()-1);
+			selectedChannel = candidates[randomCandidate];
+			if (selectedChannel == 180) selch = 0;
+			if (selectedChannel == 172) selch = 1;
+			if (selectedChannel == 176) selch = 2;
+		}/**/
+	}
+	return selectedChannel;
+}
+
+
+int ExampleService::minTRC(std::vector<int> candidateChannels)
+{
+	int selectedChannel = -1;
+	selch = -1;
+	if(!candidateChannels.empty()){
+		int n = static_cast<int>(candidateChannels.size());
+		double channelsDcc[n][2];
+		int nCand = 0;
+		
+		for(int i = 0; i < n; i++){
+			int tc = tcAlt;
+			if(candidateChannels[i] == 180) tc = tcPrim;
+			channelsDcc[i][0] = candidateChannels[i];
+			channelsDcc[i][1] = SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc));
+			nCand++;
+		}
+
+
+		int selectedChannel;
+		std::vector<int> candidates; 
+		int randomizer = intuniform(0,nCand);
+	
+		selectedChannel = (int)channelsDcc[randomizer][0];
+		double minLoad = channelsDcc[randomizer][1];
+		for(int i = 0; i < 3 ; i++){
+			if(channelsDcc[i][1] < minLoad){
+				minLoad = channelsDcc[i][1];
+				candidates.clear();
+				candidates.push_back(channelsDcc[i][0]);
+			} else {
+				if(channelsDcc[i][1] == minLoad){
+					candidates.push_back(channelsDcc[i][0]);	
+				}
+			}
+		}
+		if(!candidates.empty()){
+			int randomCandidate = intuniform(0,candidates.size()-1);
+			selectedChannel = candidates[randomCandidate];
+			if (selectedChannel == 180) selch = 0;
+			if (selectedChannel == 172) selch = 1;
+			if (selectedChannel == 176) selch = 2;
+		}/**/
+	}
+	return selectedChannel;
+}
+
+int ExampleService::loadBalancing(std::vector<int> candidateChannels)
+{
+	int selectedChannel = -1;
+	selch = -1;
+	int n = static_cast<int>(candidateChannels.size());
+	if(!candidateChannels.empty() && n == 3){
+
+		double channelsDcc[n];
+		int nCand = 0;
+		
+		for(int i = 0; i < n; i++){
+			int tc = tcAlt;
+			if(candidateChannels[i] == 180) tc = tcPrim;
+			channelsDcc[i] = candidateChannels[i];
+			nCand++;
+		}
+
+		if(lastChannel == 0){ 
+			selectedChannel = (int)channelsDcc[roundRobin];
+			selch = roundRobin;
+		} else {
+			roundRobin++; 
+			selectedChannel = (int)channelsDcc[roundRobin%3];
+			selch = roundRobin%3;
+		}
+		lastChannel = selectedChannel;	
+	}
+
+	
+	return selectedChannel;
+}
+
+int ExampleService::seqFillCBR(std::vector<int> candidateChannels)
+{
+	int selectedChannel = -1;
+	selch = -1;
+	int n = static_cast<int>(candidateChannels.size());
+	if(!candidateChannels.empty()){
+
+		double channelsDcc[n][2];
+		int nCand = 0;
+		
+		for(int i = 0; i < n; i++){
+			int tc = tcAlt;
+			if(candidateChannels[i] == 180) tc = tcPrim;
+			channelsDcc[i][0] = candidateChannels[i];
+			channelsDcc[i][1] = getCbr((int)channelsDcc[i][0])*1000;
+			nCand++;
+		}
+	
+		
+		int randomizer = intuniform(0,nCand);
+
+		selectedChannel = (int)channelsDcc[0][0];
+		selch = 0;
+		bool success = false;
+		if(channelsDcc[0][1] > mSeqFillTh){
+			for(int i = 1; i < nCand; i++){
+				if(channelsDcc[i][1] < mSeqFillTh && success == false){
+					success = true;
+					selectedChannel = (int)channelsDcc[i][0];
+					selch = i;
+				}
+			}
+			if(success == false){
+				if(mdcPolicy == 0){
+						selch = randomizer;
+						selectedChannel = (int)channelsDcc[randomizer][0];
+					} else if(mdcPolicy == 1){
+						selch = -1;
+						selectedChannel = -1;
+					} else if(mdcPolicy == 2){
+						selch = minCBR(candidateChannels);
+						selectedChannel = selch;
+					}
+			}
+		}
+			
 	}
 
 	return selectedChannel; 
 }
 
-int ExampleService::casf()
+int ExampleService::casf(std::vector<int> candidateChannels)
 {
-	double channelsDcc[3][2];
-
-	channelsDcc[0][0] = 180;
-	channelsDcc[0][1] = getQueueOccupancy((int)channelsDcc[0][0],tcPrim) * SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim)) + SIMTIME_DBL(genInterval((int)channelsDcc[0][0],tcPrim)) + SIMTIME_DBL(genGot((int)channelsDcc[0][0],tcPrim));
-	channelsDcc[1][0] = 172;
-	channelsDcc[1][1] = getQueueOccupancy((int)channelsDcc[1][0],tcAlt) * SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt)) + SIMTIME_DBL(genInterval((int)channelsDcc[1][0],tcAlt)) + SIMTIME_DBL(genGot((int)channelsDcc[1][0],tcAlt));
-	channelsDcc[2][0] = 176;
-	channelsDcc[2][1] = getQueueOccupancy((int)channelsDcc[2][0],tcAlt) * SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt)) + SIMTIME_DBL(genInterval((int)channelsDcc[2][0],tcAlt)) + SIMTIME_DBL(genGot((int)channelsDcc[2][0],tcAlt));
+	int selectedChannel = -1;
+	selch = -1;
+	if(!candidateChannels.empty()){
+		int n = static_cast<int>(candidateChannels.size());
+		double channelsDcc[n][2];
+		int nCand = 0;
+		
+		for(int i = 0; i < n; i++){
+			int tc = tcAlt;
+			if(candidateChannels[i] == 180) tc = tcPrim;
+			channelsDcc[i][0] = candidateChannels[i];
+			channelsDcc[i][1] = getQueueOccupancy((int)channelsDcc[i][0],tc) * SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc)) + SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc)) + SIMTIME_DBL(genGot((int)channelsDcc[i][0],tc));
+			nCand++;
+		}
 	
-	int selectedChannel;
 	
-	int randomizer = intuniform(0,2);
+		int randomizer = intuniform(0,nCand);
 
-	selectedChannel = (int)channelsDcc[0][0];
-	selch = 0;
-	if(channelsDcc[0][1] > mCasfTh){
-		if(channelsDcc[1][1] < mCasfTh){ 
-			selectedChannel = (int)channelsDcc[1][0];
-			selch = 1;
-		} else {
-			if(channelsDcc[2][1] < mCasfTh){
-				selectedChannel = (int)channelsDcc[2][0];
-				selch = 2;
-			} else {
-				if(mdcPolicy == 0){
-					selch = randomizer;
-					selectedChannel = (int)channelsDcc[randomizer][0];
-				} else {
-					selch = -1;
-					selectedChannel = -1;
+		selectedChannel = (int)channelsDcc[0][0];
+		selch = 0;
+		bool success = false;
+		if(channelsDcc[0][1] > mCasfTh){
+			for(int i = 1; i < nCand; i++){
+				if(channelsDcc[i][1] < mCasfTh && success == false){
+					success = true;
+					selectedChannel = (int)channelsDcc[i][0];
+					selch = i;
 				}
 			}
+			if(success == false){
+				if(mdcPolicy == 0){
+						selch = randomizer;
+						selectedChannel = (int)channelsDcc[randomizer][0];
+					} else if(mdcPolicy == 1){
+						selch = -1;
+						selectedChannel = -1;
+					} else if(mdcPolicy == 2){
+						selch = minCBR(candidateChannels);
+						selectedChannel = selch;
+					}
+			}
 		}
+			
 	}
 
 	return selectedChannel; 
 }
 
-int ExampleService::casfCLR()
-{
-	double channelsDcc[3][3];
 
-	channelsDcc[0][0] = 180;
-	channelsDcc[0][1] = getCbr((int)channelsDcc[0][0]);
-	channelsDcc[0][2] = getQueueOccupancy((int)channelsDcc[0][0],tcPrim);
-	channelsDcc[1][0] = 172;
-	channelsDcc[1][1] = getCbr((int)channelsDcc[1][0]);
-	channelsDcc[1][2] = getQueueOccupancy((int)channelsDcc[1][0],tcAlt);
-	channelsDcc[2][0] = 176;
-	channelsDcc[2][1] = getCbr((int)channelsDcc[2][0]);
-	channelsDcc[2][2] = getQueueOccupancy((int)channelsDcc[2][0],tcAlt);
-	
-	int selectedChannel;
-	
-	int randomizer = intuniform(0,2);
-
-	selectedChannel = (int)channelsDcc[0][0];
-	selch = 0;
-	if(channelsDcc[0][1] > mSeqFillTh && channelsDcc[0][2] < (dccQueueLength * queueTrigger)){
-		if(channelsDcc[1][1] < mSeqFillTh && channelsDcc[1][2] < (dccQueueLength * queueTrigger)){ 
-			selectedChannel = (int)channelsDcc[1][0];
-			selch = 1;
-		} else {
-			if(channelsDcc[2][1] < mSeqFillTh && channelsDcc[2][2] < (dccQueueLength * queueTrigger)){
-				selectedChannel = (int)channelsDcc[2][0];
-				selch = 2;
-			} else {
-				if(mdcPolicy == 0){
-					selch = randomizer;
-					selectedChannel = (int)channelsDcc[randomizer][0];
-				} else {
-					selch = -1;
-					selectedChannel = -1;
-				}
-				
-			}
-		}
-	}
-
-	return selectedChannel; 
-}
 
 
 void ExampleService::checkTriggeringConditions(const SimTime& T_now)
@@ -423,13 +437,37 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 		mRequestedExaRate = 1.0 / mGenExa.dbl();
 		double availableRate = ((1.0 / genInterval(180,tcPrim)) + (1.0 / genInterval(172,tcAlt)) + (1.0 / genInterval(176,tcAlt))) - mRequestedCamRate;
 		bool decisionByRate = mRequestedExaRate < availableRate;
+
+		int selectedChannel = 180; 
+		std::vector<int> candidateChannels;
+		int allChannels[3];
+		allChannels[0] = 180;
+		allChannels[1] = 172;
+		allChannels[2] = 176;
+		double clrLimit = par("clrLimit");
+		for(int i = 0; i < 3; i++){
+			if(occPolicy == 1){
+				if(getCbr(allChannels[i]) < clrLimit) candidateChannels.push_back(allChannels[i]);
+			} else {
+				candidateChannels.push_back(allChannels[i]);
+			}
+		}
+		
+
+		if (mAliSelection == 0) selectedChannel = loadBalancing(candidateChannels);
+		if (mAliSelection == 1) selectedChannel = seqFillCBR(candidateChannels);
+		if (mAliSelection == 2) selectedChannel = calis(candidateChannels);
+		if (mAliSelection == 3) selectedChannel = casf(candidateChannels);
+		if (mAliSelection == 4) selectedChannel = minCBR(candidateChannels);
+		if (mAliSelection == 5) selectedChannel = minTRC(candidateChannels);
+
 	
 		int ratePol = par("ratePolicy");
 		if(ratePol != 0){
-			sendExample(T_now);	
+			sendExample(T_now, selectedChannel);	
 		} else {
 			if (decisionByRate) {
-				sendExample(T_now);
+				sendExample(T_now, selectedChannel);
 			} else {
 				genRate = par("genRate");
 				mGenExa = std::min(1.0,std::max(genRate,0.001));
@@ -442,7 +480,7 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 	}
 }
 
-void ExampleService::sendExample(const SimTime& T_now)
+void ExampleService::sendExample(const SimTime& T_now, int selectedChannel)
 {
 	// use an ITS-AID reserved for testing purposes
 		static const vanetza::ItsAid example_its_aid = 16480;
@@ -450,15 +488,6 @@ void ExampleService::sendExample(const SimTime& T_now)
 		auto& mco = getFacilities().get_const<MultiChannelPolicy>();
 		auto& networks = getFacilities().get_const<NetworkInterfaceTable>();
 		
-		int selectedChannel = 180;
-
-		if (mAliSelection == 0) selectedChannel = loadBalancing();
-		if (mAliSelection == 1) selectedChannel = seqFillCBR();
-		if (mAliSelection == 2) selectedChannel = calis();
-		if (mAliSelection == 3) selectedChannel = casf();
-		if (mAliSelection == 4) selectedChannel = minCBR();
-		if (mAliSelection == 5) selectedChannel = minTRC();
-		if (mAliSelection == 6) selectedChannel = casfCLR();
 		
 		/*
 		*/
