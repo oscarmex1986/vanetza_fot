@@ -338,12 +338,12 @@ int ExampleService::seqFillCBR(std::vector<int> candidateChannels)
 			int tc = tcAlt;
 			if(candidateChannels[i] == 180) tc = tcPrim;
 			channelsDcc[i][0] = candidateChannels[i];
-			channelsDcc[i][1] = getCbr((int)channelsDcc[i][0])*1000;
+			channelsDcc[i][1] = getCbr((int)channelsDcc[i][0]);
 			nCand++;
 		}
 	
 		
-		int randomizer = intuniform(0,nCand);
+		int randomizer = intuniform(0,nCand-1);
 
 		selectedChannel = (int)channelsDcc[0][0];
 		selch = 0;
