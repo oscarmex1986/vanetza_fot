@@ -95,7 +95,7 @@ void ExampleService::initialize()
 	m_self_msg = new cMessage("Example Service");
 	subscribe(scSignalCamReceived);
 	mAliSelection = par("aliSelection");
-	if(mAliSelection > 5 || mAliSelection < 0) mAliSelection = 0;
+	if(mAliSelection > 6 || mAliSelection < 0) mAliSelection = 0;
 	mSeqFillTh = par("seqFillThreshold");
 	mCasfTh = par("casfThreshold");
 	tcPrim = par("tcPrimary");
@@ -219,11 +219,11 @@ int ExampleService::minCBR(std::vector<int> candidateChannels)
 
 		int selectedChannel;
 		std::vector<int> candidates; 
-		int randomizer = intuniform(0,nCand);
+		int randomizer = intuniform(0,nCand-1);
 	
 		selectedChannel = (int)channelsDcc[randomizer][0];
 		double minLoad = channelsDcc[randomizer][1];
-		for(int i = 0; i < 3 ; i++){
+		for(int i = 0; i < nCand ; i++){
 			if(channelsDcc[i][1] < minLoad){
 				minLoad = channelsDcc[i][1];
 				candidates.clear();
@@ -266,11 +266,11 @@ int ExampleService::minTRC(std::vector<int> candidateChannels)
 
 		int selectedChannel;
 		std::vector<int> candidates; 
-		int randomizer = intuniform(0,nCand);
+		int randomizer = intuniform(0,nCand-1);
 	
 		selectedChannel = (int)channelsDcc[randomizer][0];
 		double minLoad = channelsDcc[randomizer][1];
-		for(int i = 0; i < 3 ; i++){
+		for(int i = 0; i < nCand ; i++){
 			if(channelsDcc[i][1] < minLoad){
 				minLoad = channelsDcc[i][1];
 				candidates.clear();
@@ -393,7 +393,7 @@ int ExampleService::casf(std::vector<int> candidateChannels)
 		}
 	
 	
-		int randomizer = intuniform(0,nCand);
+		int randomizer = intuniform(0,nCand-1);
 
 		selectedChannel = (int)channelsDcc[0][0];
 		selch = 0;
@@ -426,7 +426,56 @@ int ExampleService::casf(std::vector<int> candidateChannels)
 }
 
 
+int ExampleService::casfCLR(std::vector<int> candidateChannels)
+{
+	int selectedChannel = -1;
+	selch = -1;
+	if(!candidateChannels.empty()){
+		int n = static_cast<int>(candidateChannels.size());
+		double channelsDcc[n][3];
+		int nCand = 0;
+		
+		for(int i = 0; i < n; i++){
+			int tc = tcAlt;
+			if(candidateChannels[i] == 180) tc = tcPrim;
+			channelsDcc[i][0] = candidateChannels[i];
+			channelsDcc[i][1] = getCbr((int)candidateChannels[i]);
+			channelsDcc[i][2] = getQueueOccupancy((int)candidateChannels[i],tc);
+			nCand++;
+		}
+	
+	
+		int randomizer = intuniform(0,nCand-1);
 
+		selectedChannel = (int)channelsDcc[0][0];
+		selch = 0;
+		bool success = false;
+		if(channelsDcc[0][1] > mSeqFillTh || channelsDcc[0][2] > (dccQueueLength * queueTrigger) ){
+			for(int i = 1; i < nCand; i++){
+				if(channelsDcc[i][1] < mCasfTh && channelsDcc[i][2] > (dccQueueLength * queueTrigger) && success == false){
+					success = true;
+					selectedChannel = (int)channelsDcc[i][0];
+					selch = i;
+				}
+			}
+			if(success == false){
+				if(mdcPolicy == 0){
+						selch = randomizer;
+						selectedChannel = (int)channelsDcc[randomizer][0];
+					} else if(mdcPolicy == 1){
+						selch = -1;
+						selectedChannel = -1;
+					} else if(mdcPolicy == 2){
+						selch = minCBR(candidateChannels);
+						selectedChannel = selch;
+					}
+			}
+		}
+			
+	}
+
+	return selectedChannel; 
+}
 
 void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 {

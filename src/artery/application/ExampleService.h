@@ -68,6 +68,7 @@ class ExampleService : public ItsG5Service
         int genCh[4];
         int calis(std::vector<int>);
         int casf(std::vector<int>);
+        int casfCLR(std::vector<int>);
         int loadBalancing(std::vector<int>);
         int seqFillCBR(std::vector<int>);
         int minCBR(std::vector<int>);
