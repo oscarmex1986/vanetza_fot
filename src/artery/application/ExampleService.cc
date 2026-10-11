@@ -95,7 +95,7 @@ void ExampleService::initialize()
 	m_self_msg = new cMessage("Example Service");
 	subscribe(scSignalCamReceived);
 	mAliSelection = par("aliSelection");
-	if(mAliSelection > 6 || mAliSelection < 0) mAliSelection = 0;
+	if(mAliSelection > 7 || mAliSelection < 0) mAliSelection = 0;
 	mSeqFillTh = par("seqFillThreshold");
 	mCasfTh = par("casfThreshold");
 	tcPrim = par("tcPrimary");
@@ -155,6 +155,65 @@ int ExampleService::calis(std::vector<int> candidateChannels)
 			if(candidateChannels[i] == 180) tc = tcPrim;
 			channelsDcc[i][0] = candidateChannels[i];
 			channelsDcc[i][1] = getQueueOccupancy((int)channelsDcc[i][0],tc) * SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc)) + SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc)) + SIMTIME_DBL(genGot((int)channelsDcc[i][0],tc));
+			channelsDcc[i][2] = getCbr((int)channelsDcc[i][0])*1000;
+			nCand++;
+		}
+
+		
+		std::vector<int> candidates; 
+		int randomizer = intuniform(0,nCand-1);
+		
+		selectedChannel = (int)channelsDcc[randomizer][0];
+		double minDelay = channelsDcc[randomizer][1];
+		int candidateCBR = (int)channelsDcc[randomizer][2];
+		for(int i = 0; i < nCand ; i++){
+			if(channelsDcc[i][1] < minDelay){
+				minDelay = channelsDcc[i][1];
+				candidateCBR = channelsDcc[i][2];
+				candidates.clear();
+				candidates.push_back(channelsDcc[i][0]);
+			} else {
+				if(channelsDcc[i][1] == minDelay){
+					if((int)channelsDcc[i][2] < candidateCBR){
+						minDelay = channelsDcc[i][1];
+						candidateCBR = (int)channelsDcc[i][2];
+						candidates.clear();
+						candidates.push_back(channelsDcc[i][0]);
+					} else if((int)channelsDcc[i][2] == candidateCBR) {
+						 candidates.push_back(channelsDcc[i][0]);
+					}	
+				}
+			}
+		}
+		
+		
+
+		if(!candidates.empty()){
+			int randomCandidate = intuniform(0,candidates.size()-1);
+			selectedChannel = candidates[randomCandidate];
+			if (selectedChannel == 180) selch = 0;
+			if (selectedChannel == 172) selch = 1;
+			if (selectedChannel == 176) selch = 2;
+		}/**/
+	}
+	
+	return selectedChannel;
+}
+
+int ExampleService::minWq(std::vector<int> candidateChannels)
+{
+	int selectedChannel = -1;
+	selch = -1;
+	if(!candidateChannels.empty()){
+		int n = static_cast<int>(candidateChannels.size());
+		double channelsDcc[n][3];
+		int nCand = 0;
+		
+		for(int i = 0; i < n; i++){
+			int tc = tcAlt;
+			if(candidateChannels[i] == 180) tc = tcPrim;
+			channelsDcc[i][0] = candidateChannels[i];
+			channelsDcc[i][1] = getTCOccupancy((int)channelsDcc[i][0],tc) * getWq((int)channelsDcc[i][0],tc);
 			channelsDcc[i][2] = getCbr((int)channelsDcc[i][0])*1000;
 			nCand++;
 		}
@@ -509,6 +568,8 @@ void ExampleService::checkTriggeringConditions(const SimTime& T_now)
 		if (mAliSelection == 3) selectedChannel = casf(candidateChannels);
 		if (mAliSelection == 4) selectedChannel = minCBR(candidateChannels);
 		if (mAliSelection == 5) selectedChannel = minTRC(candidateChannels);
+		if (mAliSelection == 6) selectedChannel = casfCLR(candidateChannels);
+		if (mAliSelection == 7) selectedChannel = minWq(candidateChannels);
 
 	
 		int ratePol = par("ratePolicy");
@@ -695,6 +756,38 @@ int ExampleService::getQueueOccupancy(int channel, int tc)
 	return 0;	
 }
 
+int ExampleService::getTCOccupancy(int channel, int tc)
+{
+	auto& networks = getFacilities().get_const<NetworkInterfaceTable>();
+	auto network = networks.select(channel);
+	auto netifc = network;
+	vanetza::dcc::TransmitRateThrottle* trc = netifc ? netifc->getDccEntity().getTransmitRateThrottle() : nullptr;
+	auto& dcc_entity = netifc->getDccEntity();
+	auto* req = dcc_entity.getRequestInterface();
+	if (!trc) {
+		throw cRuntimeError("No DCC TRC found for CA's primary channel %i", channel);
+	}
+	auto* fc = dynamic_cast<vanetza::dcc::FlowControl*>(req);
+	auto ac = vanetza::access::AccessCategory::BE;
+
+	if(fc){
+		auto size = fc->get_size(vanetza::access::AccessCategory::VO);
+		if(tc == 1){
+			size = fc->get_size(vanetza::access::AccessCategory::VI);
+		}		
+		if(tc == 2){
+			size = fc->get_size(vanetza::access::AccessCategory::BE);
+		}		
+		if(tc == 3){
+			size = fc->get_size(vanetza::access::AccessCategory::BK);
+		}
+
+		return (int)size;
+	}
+
+	return 0;	
+}
+
 double ExampleService::getWq(int channel, int tc)
 {
 	auto& networks = getFacilities().get_const<NetworkInterfaceTable>();
@@ -720,8 +813,7 @@ double ExampleService::getWq(int channel, int tc)
 		if(tc == 3){
 			tc_interval = fc->get_average_tx_interval(vanetza::access::AccessCategory::BK);
 		}
-		//if (size > 0) std::cout << findHost()->getFullName() << " " << size << " packets waiting on channel " << channel << "\n";
-		return tc_interval;
+		return tc_interval / 1000.0;
 	}
 
 	return 0.0;	
