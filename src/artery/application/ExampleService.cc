@@ -56,7 +56,7 @@ ExampleService::ExampleService()
 		fclose(myfile5);
 		
 		myfile7 = fopen("MessageTriggerCLR.csv", "w");
-		fprintf(myfile7, "%s,%s,%s,%s,%s,%s\n","nodeName","timestamp","180","172","176","Selected");
+		fprintf(myfile7, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n","nodeName","timestamp","180","172","176","Selected","Wq_180","Wq_172","Wq_176","Lq_180","Lq_172","Lq_176");
 		fclose(myfile7);
 	}
 	lastChannel = 0;
@@ -580,7 +580,7 @@ void ExampleService::sendExample(const SimTime& T_now, int selectedChannel)
 		}
 		
 		myfile7 = fopen("MessageTriggerCLR.csv", "a");
-		fprintf(myfile7, "%s,%f,%f,%f,%f,%d\n",findHost()->getFullName(),SIMTIME_DBL(simTime()),getCbr(180),getCbr(172),getCbr(176),selectedChannel);
+		fprintf(myfile7, "%s,%f,%f,%f,%f,%d,%f,%f,%f,%d,%d,%d\n",findHost()->getFullName(),SIMTIME_DBL(simTime()),getCbr(180),getCbr(172),getCbr(176),selectedChannel,getWq(180,tcPrim),getWq(172,tcAlt),getWq(176,tcAlt),getQueueOccupancy(180,tcPrim),getQueueOccupancy(172,tcAlt),getQueueOccupancy(176,tcAlt));
 		fclose(myfile7);
 
 		mLastExaTimestamp = T_now;
@@ -694,6 +694,39 @@ int ExampleService::getQueueOccupancy(int channel, int tc)
 
 	return 0;	
 }
+
+double ExampleService::getWq(int channel, int tc)
+{
+	auto& networks = getFacilities().get_const<NetworkInterfaceTable>();
+	auto network = networks.select(channel);
+	auto netifc = network;
+	vanetza::dcc::TransmitRateThrottle* trc = netifc ? netifc->getDccEntity().getTransmitRateThrottle() : nullptr;
+	auto& dcc_entity = netifc->getDccEntity();
+	auto* req = dcc_entity.getRequestInterface();
+	if (!trc) {
+		throw cRuntimeError("No DCC TRC found for CA's primary channel %i", channel);
+	}
+	auto* fc = dynamic_cast<vanetza::dcc::FlowControl*>(req);
+	auto ac = vanetza::access::AccessCategory::BE;
+
+	if(fc){
+		auto tc_interval = fc->get_average_tx_interval(vanetza::access::AccessCategory::VO);
+		if(tc == 1){
+			tc_interval = fc->get_average_tx_interval(vanetza::access::AccessCategory::VI);
+		}		
+		if(tc == 2){
+			tc_interval = fc->get_average_tx_interval(vanetza::access::AccessCategory::BE);
+		}		
+		if(tc == 3){
+			tc_interval = fc->get_average_tx_interval(vanetza::access::AccessCategory::BK);
+		}
+		//if (size > 0) std::cout << findHost()->getFullName() << " " << size << " packets waiting on channel " << channel << "\n";
+		return tc_interval;
+	}
+
+	return 0.0;	
+}
+
 double ExampleService::getCbr(int channel)
 {
 	

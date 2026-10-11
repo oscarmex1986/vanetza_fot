@@ -41,6 +41,7 @@ class ExampleService : public ItsG5Service
         void trigger() override;
         void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, omnetpp::cObject*, omnetpp::cObject*) override;
         int getQueueOccupancy(int channel, int tc);
+        double getWq(int channel, int tc);
         omnetpp::SimTime genInterval(int channel, int tc);
         omnetpp::SimTime genGot(int channel, int tc);
         double getCbr(int channel);
