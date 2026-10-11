@@ -14,6 +14,8 @@
 #include <memory>
 #include <map>
 #include <cstddef>
+#include <cstdint>
+#include <chrono>
 
 namespace vanetza
 {
@@ -83,6 +85,7 @@ public:
      */
     void reschedule();
     std::size_t get_size(access::AccessCategory ac) const;
+    double get_average_tx_interval(access::AccessCategory ac) const;
 
 private:
     struct PendingTransmission : public Transmission
@@ -101,6 +104,7 @@ private:
 
     using Queue = std::list<PendingTransmission>;
 
+
     void enqueue(const DataRequest&, std::unique_ptr<ChunkPacket>);
     boost::optional<PendingTransmission> dequeue();
     void transmit(const DataRequest&, std::unique_ptr<ChunkPacket>);
@@ -116,6 +120,16 @@ private:
     TransmitRateControl& m_trc;
     access::Interface& m_access;
     std::map<access::AccessCategory, Queue, std::greater<access::AccessCategory>> m_queues;
+    
+    struct TxStats
+    {
+        bool first_tx = true;
+        Clock::time_point last_tx;
+        double avg_interval_ms = 0.0;
+        std::uint64_t samples = 0;
+    };
+    std::map<access::AccessCategory, TxStats, std::greater<access::AccessCategory>> m_tx_stats;
+
     std::size_t m_queue_length;
     PacketDropHook m_packet_drop_hook;
     PacketTransmitHook m_packet_transmit_hook;

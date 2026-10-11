@@ -6,6 +6,7 @@
 #include <vanetza/access/interface.hpp>
 #include <vanetza/common/runtime.hpp>
 #include <algorithm>
+#include <chrono>
 
 FILE *fileFlow;
 int instanceCounterFC = -1;
@@ -66,6 +67,17 @@ std::size_t FlowControl::get_size(access::AccessCategory ac) const
         return it->second.size();
     }
     return 0;
+}
+
+double FlowControl::get_average_tx_interval(access::AccessCategory ac) const
+{
+    auto it = m_tx_stats.find(ac);
+
+    if(it != m_tx_stats.end()){
+        return it->second.avg_interval_ms;
+    }
+
+    return 0.0;
 }
 
 void FlowControl::trigger()
@@ -186,21 +198,33 @@ void FlowControl::drop_expired()
 
 void FlowControl::transmit(const DataRequest& request, std::unique_ptr<ChunkPacket> packet)
 {
+    access::AccessCategory ac = map_profile_onto_ac(request.dcc_profile); 
+    
+    auto now = m_runtime.now();
+
+    auto& stats = m_tx_stats[ac];
+
+    if(!stats.first_tx){
+        auto interval = now - stats.last_tx;
+
+        double interval_ms = std::chrono::duration_cast<std::chrono::milliseconds>(interval).count();
+
+        stats.samples++;
+
+        stats.avg_interval_ms += (interval_ms - stats.avg_interval_ms) / stats.samples;
+
+
+    } else {
+        stats.first_tx = false;
+    }
+
+    stats.last_tx = now;
+
     access::DataRequest access_request;
     access_request.source_addr = request.source;
     access_request.destination_addr = request.destination;
     access_request.ether_type = request.ether_type;
-    access_request.access_category = map_profile_onto_ac(request.dcc_profile);
-
-    /*
-            OAM: Imprimo todas las transmisiones (eventos de desencolado)
-        */
-        /*fileFlow = fopen("FlowControl.csv","a");
-        fprintf(fileFlow, "%i,%li,%i,%li,%li\n", flowid, m_runtime.now(),3,request.dcc_profile,request.lifetime);
-        fclose(fileFlow);*/
-        /*
-            OAM: END imprimir eventos de desencolado
-        */
+    access_request.access_category = ac;
 
     m_packet_transmit_hook(access_request.access_category, packet.get());
     m_access.request(access_request, std::move(packet));
