@@ -22,12 +22,7 @@ FlowControl::FlowControl(Runtime& runtime, TransmitRateControl& trc, access::Int
 {
     instanceCounterFC = instanceCounterFC + 1;
     flowid = instanceCounterFC;
-    /*if (headerFlagFlow == 0){
-        fileFlow = fopen("FlowControl.csv", "w");
-        fprintf(fileFlow, "%s,%s,%s,%s\n","id","t");
-        headerFlagFlow = 1;
-        fclose(fileFlow);
-    }*/
+
 }
 
 FlowControl::~FlowControl()
@@ -38,25 +33,15 @@ FlowControl::~FlowControl()
 void FlowControl::request(const DataRequest& request, std::unique_ptr<ChunkPacket> packet)
 {
     drop_expired();
-    int action = 0;
+
     const TransmissionLite transmission { request.dcc_profile, packet->size() };
     if (transmit_immediately(transmission)) {
         m_trc.notify(transmission);
         transmit(request, std::move(packet));
-        action = 1;
     } else {
         enqueue(request, std::move(packet));
-        action = 2;
     }
-    /*
-            OAM: Imprimo todas las transmisiones (eventos de desencolado)
-        */
-        /*fileFlow = fopen("FlowControl.csv","a");
-        fprintf(fileFlow, "%i,%li,%i,%li,%li\n", flowid, m_runtime.now(),action,request.dcc_profile,request.lifetime);
-        fclose(fileFlow);*/
-        /*
-            OAM: END imprimir eventos de desencolado
-        */
+    
 }
 
 
@@ -212,8 +197,7 @@ void FlowControl::transmit(const DataRequest& request, std::unique_ptr<ChunkPack
         stats.samples++;
 
         stats.avg_interval_ms += (interval_ms - stats.avg_interval_ms) / stats.samples;
-
-
+        
     } else {
         stats.first_tx = false;
     }
