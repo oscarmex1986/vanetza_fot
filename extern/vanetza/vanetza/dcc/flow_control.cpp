@@ -196,7 +196,7 @@ void FlowControl::transmit(const DataRequest& request, std::unique_ptr<ChunkPack
 
         stats.samples++;
 
-        stats.avg_interval_ms += (interval_ms - stats.avg_interval_ms) / stats.samples;
+        stats.avg_interval_ms = 0.5 * interval_ms + 0.5 * stats.avg_interval_ms;
         
     } else {
         stats.first_tx = false;
