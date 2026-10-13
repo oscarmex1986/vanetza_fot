@@ -41,6 +41,7 @@ class ExampleService : public ItsG5Service
         void trigger() override;
         void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, omnetpp::cObject*, omnetpp::cObject*) override;
         int getQueueOccupancy(int channel, int tc);
+        int getWeighedQueueOccupancy(int channel, int tc);
         int getTCOccupancy(int channel, int tc);
         double getWq(int channel, int tc);
         omnetpp::SimTime genInterval(int channel, int tc);
@@ -76,6 +77,7 @@ class ExampleService : public ItsG5Service
         int minCBR(std::vector<int>);
         int minTRC(std::vector<int>);
         int minWq(std::vector<int>);
+        int qalis(std::vector<int>);
         int selch = 0;
         int seltc = 0;
         double avgQueuePlace = 0.0;
