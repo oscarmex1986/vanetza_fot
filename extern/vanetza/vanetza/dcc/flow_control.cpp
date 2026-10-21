@@ -7,10 +7,14 @@
 #include <vanetza/common/runtime.hpp>
 #include <algorithm>
 #include <chrono>
+#include <iostream>
 
 FILE *fileFlow;
 int instanceCounterFC = -1;
 int headerFlagFlow = 0;
+
+static bool global_sim_start_initialized = false;
+static vanetza::Clock::time_point g_sim_start; 
 
 namespace vanetza
 {
@@ -22,7 +26,10 @@ FlowControl::FlowControl(Runtime& runtime, TransmitRateControl& trc, access::Int
 {
     instanceCounterFC = instanceCounterFC + 1;
     flowid = instanceCounterFC;
-    m_start_time = m_runtime.now();
+    if(!global_sim_start_initialized){
+        g_sim_start = m_runtime.now() - std::chrono::milliseconds(100);
+        global_sim_start_initialized = true;
+    }
 
 }
 
@@ -83,7 +90,7 @@ double FlowControl::get_last_tx_t(access::AccessCategory ac) const
 
     if(it != m_tx_stats.end()){
         
-        auto elapsed = it->second.last_tx - m_start_time;
+        auto elapsed = it->second.last_tx - g_sim_start;
 
         return std::chrono::duration<double>(elapsed).count();
     }

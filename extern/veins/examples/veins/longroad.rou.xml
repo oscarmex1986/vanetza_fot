@@ -605,7 +605,7 @@
 <route id="route599" edges="599" />
 <route id="route600" edges="600" />
 
-<flow id="flow1" number="1" period="3" begin="0.001" route="route1" type="vtype0"/>
+<flow id="flow1" number="1" period="3" begin="0" route="route1" type="vtype0"/>
 <flow id="flow2" number="1" period="3" begin="0.002" route="route2" type="vtype0"/>
 <flow id="flow3" number="1" period="3" begin="0.003" route="route3" type="vtype0"/>
 <flow id="flow4" number="1" period="3" begin="0.004" route="route4" type="vtype0"/>
