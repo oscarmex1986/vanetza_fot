@@ -44,8 +44,10 @@ class ExampleService : public ItsG5Service
         int getWeighedQueueOccupancy(int channel, int tc);
         int getTCOccupancy(int channel, int tc);
         double getWq(int channel, int tc);
+        double getLastInterval(int channel, int tc);
         omnetpp::SimTime genInterval(int channel, int tc);
         omnetpp::SimTime genGot(int channel, int tc);
+        double getLastTxT(int channel, int tc);
         double getCbr(int channel);
         
 
@@ -69,6 +71,7 @@ class ExampleService : public ItsG5Service
         int lastChannel;
         long roundRobin;
         int genCh[4];
+        double lastTx[3][2];
         int calis(std::vector<int>);
         int casf(std::vector<int>);
         int casfCLR(std::vector<int>);

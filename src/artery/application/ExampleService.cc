@@ -56,7 +56,7 @@ ExampleService::ExampleService()
 		fclose(myfile5);
 		
 		myfile7 = fopen("MessageTriggerCLR.csv", "w");
-		fprintf(myfile7, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n","nodeName","timestamp","180","172","176","Selected","Wq_180","Wq_172","Wq_176","Lq_180","Lq_172","Lq_176");
+		fprintf(myfile7, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n","nodeName","timestamp","180","172","176","Selected","Wq_180","Wq_172","Wq_176","Lq_180","Lq_172","Lq_176","ltx_180","lrq_180","ltx_172","lrq_172","ltx_176","lrq_176");
 		fclose(myfile7);
 	}
 	lastChannel = 0;
@@ -65,6 +65,12 @@ ExampleService::ExampleService()
 	genCh[1] = 0;
 	genCh[2] = 0;
 	genCh[3] = 0;
+	lastTx[0][0] = 0.0;
+	lastTx[1][0] = 0.0;
+	lastTx[2][0] = 0.0;
+	lastTx[0][1] = 0.0;
+	lastTx[1][1] = 0.0;
+	lastTx[2][1] = 0.0;
 
 
 }
@@ -271,8 +277,20 @@ int ExampleService::minWq(std::vector<int> candidateChannels)
 		for(int i = 0; i < n; i++){
 			int tc = tcAlt;
 			if(candidateChannels[i] == 180) tc = tcPrim;
+			double lastGenOnChannel = 0.0;
+			if(candidateChannels[i] == 180) lastGenOnChannel = lastTx[0][0];
+			if(candidateChannels[i] == 172) lastGenOnChannel = lastTx[1][0];
+			if(candidateChannels[i] == 176) lastGenOnChannel = lastTx[2][0];
 			channelsDcc[i][0] = candidateChannels[i];
-			channelsDcc[i][1] = getTCOccupancy((int)channelsDcc[i][0],tc) * getWq((int)channelsDcc[i][0],tc);
+			int nWaiting = getTCOccupancy((int)channelsDcc[i][0],tc);
+			double lastTxTime = getLastInterval(channelsDcc[i][0],tc);
+			double wq = getWq((int)channelsDcc[i][0],tc);
+			double t_last_tx_access = getLastTxT((int)channelsDcc[i][0],tc);
+			double accInterval = SIMTIME_DBL(simTime()) - t_last_tx_access;
+			double facInterval = SIMTIME_DBL(simTime()) - lastGenOnChannel;
+			
+			channelsDcc[i][1] = nWaiting * wq;
+			
 			channelsDcc[i][2] = getCbr((int)channelsDcc[i][0])*1000;
 			nCand++;
 		}
@@ -694,15 +712,20 @@ void ExampleService::sendExample(const SimTime& T_now, int selectedChannel)
 			//std::cout << findHost()->getFullName() << "Transmitting in channel" << selectedChannel << "\n";
 					
 			genCh[selch] = genCh[selch] + 1;
+			lastTx[selch][0] = lastTx[selch][1];
+			lastTx[selch][1] = SIMTIME_DBL(T_now); 
+
+			myfile7 = fopen("MessageTriggerCLR.csv", "a");
+			fprintf(myfile7, "%s,%f,%f,%f,%f,%d,%f,%f,%f,%d,%d,%d,%f,%f,%f,%f,%f,%f\n",findHost()->getFullName(),SIMTIME_DBL(T_now),getCbr(180),getCbr(172),getCbr(176),selectedChannel,getWq(180,tcPrim),getWq(172,tcAlt),getWq(176,tcAlt),getQueueOccupancy(180,tcPrim),getQueueOccupancy(172,tcAlt),getQueueOccupancy(176,tcAlt),getLastTxT(180,tcPrim),lastTx[0][0],getLastTxT(172,tcAlt),lastTx[1][0],getLastTxT(176,tcAlt),lastTx[2][0]);
+			fclose(myfile7);
+
 			// send packet on specific network interface
 			request(req, packet, network.get());
 		} else {
 			genCh[3] = genCh[3] + 1;
 		}
 		
-		myfile7 = fopen("MessageTriggerCLR.csv", "a");
-		fprintf(myfile7, "%s,%f,%f,%f,%f,%d,%f,%f,%f,%d,%d,%d\n",findHost()->getFullName(),SIMTIME_DBL(simTime()),getCbr(180),getCbr(172),getCbr(176),selectedChannel,getWq(180,tcPrim),getWq(172,tcAlt),getWq(176,tcAlt),getQueueOccupancy(180,tcPrim),getQueueOccupancy(172,tcAlt),getQueueOccupancy(176,tcAlt));
-		fclose(myfile7);
+		
 
 		mLastExaTimestamp = T_now;
 		mGenExa = std::min(1.0,std::max(genRate,0.001));
@@ -874,6 +897,69 @@ double ExampleService::getWq(int channel, int tc)
 			tc_interval = fc->get_average_tx_interval(vanetza::access::AccessCategory::BK);
 		}
 		return tc_interval / 1000.0;
+	}
+
+	return 0.0;	
+}
+
+double ExampleService::getLastInterval(int channel, int tc)
+{
+	auto& networks = getFacilities().get_const<NetworkInterfaceTable>();
+	auto network = networks.select(channel);
+	auto netifc = network;
+	vanetza::dcc::TransmitRateThrottle* trc = netifc ? netifc->getDccEntity().getTransmitRateThrottle() : nullptr;
+	auto& dcc_entity = netifc->getDccEntity();
+	auto* req = dcc_entity.getRequestInterface();
+	if (!trc) {
+		throw cRuntimeError("No DCC TRC found for CA's primary channel %i", channel);
+	}
+	auto* fc = dynamic_cast<vanetza::dcc::FlowControl*>(req);
+	auto ac = vanetza::access::AccessCategory::BE;
+
+	if(fc){
+		auto tc_interval = fc->get_last_tx_interval(vanetza::access::AccessCategory::VO);
+		if(tc == 1){
+			tc_interval = fc->get_last_tx_interval(vanetza::access::AccessCategory::VI);
+		}		
+		if(tc == 2){
+			tc_interval = fc->get_last_tx_interval(vanetza::access::AccessCategory::BE);
+		}		
+		if(tc == 3){
+			tc_interval = fc->get_last_tx_interval(vanetza::access::AccessCategory::BK);
+		}
+		return tc_interval / 1000.0;
+	}
+
+	return 0.0;	
+}
+
+double ExampleService::getLastTxT(int channel, int tc)
+{
+	auto& networks = getFacilities().get_const<NetworkInterfaceTable>();
+	auto network = networks.select(channel);
+	auto netifc = network;
+	vanetza::dcc::TransmitRateThrottle* trc = netifc ? netifc->getDccEntity().getTransmitRateThrottle() : nullptr;
+	auto& dcc_entity = netifc->getDccEntity();
+	auto* req = dcc_entity.getRequestInterface();
+	if (!trc) {
+		throw cRuntimeError("No DCC TRC found for CA's primary channel %i", channel);
+	}
+	auto* fc = dynamic_cast<vanetza::dcc::FlowControl*>(req);
+	auto ac = vanetza::access::AccessCategory::BE;
+
+	if(fc){
+		auto tc_interval = fc->get_last_tx_t(vanetza::access::AccessCategory::VO);
+		if(tc == 1){
+			tc_interval = fc->get_last_tx_t(vanetza::access::AccessCategory::VI);
+		}		
+		if(tc == 2){
+			tc_interval = fc->get_last_tx_t(vanetza::access::AccessCategory::BE);
+		}		
+		if(tc == 3){
+			tc_interval = fc->get_last_tx_t(vanetza::access::AccessCategory::BK);
+		}
+		if(tc_interval < 0.0) return 0.0; 
+		return tc_interval;
 	}
 
 	return 0.0;	

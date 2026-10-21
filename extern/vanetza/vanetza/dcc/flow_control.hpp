@@ -86,6 +86,8 @@ public:
     void reschedule();
     std::size_t get_size(access::AccessCategory ac) const;
     double get_average_tx_interval(access::AccessCategory ac) const;
+    double get_last_tx_interval(access::AccessCategory ac) const;
+    double get_last_tx_t(access::AccessCategory ac) const;
 
 private:
     struct PendingTransmission : public Transmission
@@ -116,6 +118,8 @@ private:
     PendingTransmission* next_transmission();
     Queue* next_queue();
 
+    Clock::time_point m_start_time;
+
     Runtime& m_runtime;
     TransmitRateControl& m_trc;
     access::Interface& m_access;
@@ -126,6 +130,7 @@ private:
         bool first_tx = true;
         Clock::time_point last_tx;
         double avg_interval_ms = 0.0;
+        double last_interval = 0.0;
         std::uint64_t samples = 0;
     };
     std::map<access::AccessCategory, TxStats, std::greater<access::AccessCategory>> m_tx_stats;

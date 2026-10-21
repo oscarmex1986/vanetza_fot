@@ -22,6 +22,7 @@ FlowControl::FlowControl(Runtime& runtime, TransmitRateControl& trc, access::Int
 {
     instanceCounterFC = instanceCounterFC + 1;
     flowid = instanceCounterFC;
+    m_start_time = m_runtime.now();
 
 }
 
@@ -63,6 +64,31 @@ double FlowControl::get_average_tx_interval(access::AccessCategory ac) const
     }
 
     return 0.0;
+}
+
+double FlowControl::get_last_tx_interval(access::AccessCategory ac) const
+{
+    auto it = m_tx_stats.find(ac);
+
+    if(it != m_tx_stats.end()){
+        return it->second.last_interval;
+    }
+
+    return 0.0;
+}
+
+double FlowControl::get_last_tx_t(access::AccessCategory ac) const
+{
+    auto it = m_tx_stats.find(ac);
+
+    if(it != m_tx_stats.end()){
+        
+        auto elapsed = it->second.last_tx - m_start_time;
+
+        return std::chrono::duration<double>(elapsed).count();
+    }
+
+    return -10.0;
 }
 
 void FlowControl::trigger()
@@ -196,13 +222,15 @@ void FlowControl::transmit(const DataRequest& request, std::unique_ptr<ChunkPack
 
         stats.samples++;
 
+        stats.last_interval = interval_ms;
+
         stats.avg_interval_ms = 0.5 * interval_ms + 0.5 * stats.avg_interval_ms;
         
     } else {
         stats.first_tx = false;
     }
 
-    stats.last_tx = now;
+    stats.last_tx = now; 
 
     access::DataRequest access_request;
     access_request.source_addr = request.source;
