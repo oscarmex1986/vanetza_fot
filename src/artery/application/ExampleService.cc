@@ -278,9 +278,9 @@ int ExampleService::minWq(std::vector<int> candidateChannels)
 			int tc = tcAlt;
 			if(candidateChannels[i] == 180) tc = tcPrim;
 			double lastGenOnChannel = 0.0;
-			if(candidateChannels[i] == 180) lastGenOnChannel = lastTx[0][0];
-			if(candidateChannels[i] == 172) lastGenOnChannel = lastTx[1][0];
-			if(candidateChannels[i] == 176) lastGenOnChannel = lastTx[2][0];
+			if(candidateChannels[i] == 180) lastGenOnChannel = lastTx[0][1];
+			if(candidateChannels[i] == 172) lastGenOnChannel = lastTx[1][1];
+			if(candidateChannels[i] == 176) lastGenOnChannel = lastTx[2][1];
 			channelsDcc[i][0] = candidateChannels[i];
 			int nWaiting = getTCOccupancy((int)channelsDcc[i][0],tc);
 			double lastTxTime = getLastInterval(channelsDcc[i][0],tc);

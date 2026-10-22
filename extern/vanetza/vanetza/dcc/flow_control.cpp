@@ -90,9 +90,9 @@ double FlowControl::get_last_tx_t(access::AccessCategory ac) const
 
     if(it != m_tx_stats.end()){
         
-        auto elapsed = it->second.last_tx - g_sim_start;
+        auto us = it->second.last_tx.time_since_epoch().count();
 
-        return std::chrono::duration<double>(elapsed).count();
+        return (us % 60000000LL) / 1000000.0;
     }
 
     return -10.0;

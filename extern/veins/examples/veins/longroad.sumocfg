@@ -6,9 +6,6 @@
 	<time>
 		<begin value="0" />
 		<end value="1000" />
-		<!-- IF YOU CHANGE THE STEP, IT WILL AFFECT THE VANETZA FLOW
-		CONTROL GETTER FOR LAST TX TIME
-		LEAVE IT AT 0.1 OR UPDATE THE FLOW CONTROL FILE -->
 		<step-length value="0.1" />
 	</time>
 	<report>
