@@ -118,8 +118,6 @@ private:
     PendingTransmission* next_transmission();
     Queue* next_queue();
 
-    Clock::time_point m_start_time;
-
     Runtime& m_runtime;
     TransmitRateControl& m_trc;
     access::Interface& m_access;

@@ -13,8 +13,6 @@ FILE *fileFlow;
 int instanceCounterFC = -1;
 int headerFlagFlow = 0;
 
-static bool global_sim_start_initialized = false;
-static vanetza::Clock::time_point g_sim_start; 
 
 namespace vanetza
 {
@@ -26,11 +24,6 @@ FlowControl::FlowControl(Runtime& runtime, TransmitRateControl& trc, access::Int
 {
     instanceCounterFC = instanceCounterFC + 1;
     flowid = instanceCounterFC;
-    if(!global_sim_start_initialized){
-        g_sim_start = m_runtime.now() - std::chrono::milliseconds(100);
-        global_sim_start_initialized = true;
-    }
-
 }
 
 FlowControl::~FlowControl()
