@@ -71,6 +71,7 @@ class ExampleService : public ItsG5Service
         int lastChannel;
         long roundRobin;
         int genCh[4];
+        double lastGen[3][2];
         double lastTx[3][2];
         int calis(std::vector<int>);
         int casf(std::vector<int>);

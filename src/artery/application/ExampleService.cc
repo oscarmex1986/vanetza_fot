@@ -65,6 +65,12 @@ ExampleService::ExampleService()
 	genCh[1] = 0;
 	genCh[2] = 0;
 	genCh[3] = 0;
+	lastGen[0][0] = 0.0;
+	lastGen[1][0] = 0.0;
+	lastGen[2][0] = 0.0;
+	lastGen[0][1] = 0.0;
+	lastGen[1][1] = 0.0;
+	lastGen[2][1] = 0.0;
 	lastTx[0][0] = 0.0;
 	lastTx[1][0] = 0.0;
 	lastTx[2][0] = 0.0;
@@ -278,18 +284,36 @@ int ExampleService::minWq(std::vector<int> candidateChannels)
 			int tc = tcAlt;
 			if(candidateChannels[i] == 180) tc = tcPrim;
 			double lastGenOnChannel = 0.0;
-			if(candidateChannels[i] == 180) lastGenOnChannel = lastTx[0][1];
-			if(candidateChannels[i] == 172) lastGenOnChannel = lastTx[1][1];
-			if(candidateChannels[i] == 176) lastGenOnChannel = lastTx[2][1];
+			if(candidateChannels[i] == 180) lastGenOnChannel = lastGen[0][1];
+			if(candidateChannels[i] == 172) lastGenOnChannel = lastGen[1][1];
+			if(candidateChannels[i] == 176) lastGenOnChannel = lastGen[2][1];
 			channelsDcc[i][0] = candidateChannels[i];
 			int nWaiting = getTCOccupancy((int)channelsDcc[i][0],tc);
-			double lastTxTime = getLastInterval(channelsDcc[i][0],tc);
+			double lastTxInterval = getLastInterval(channelsDcc[i][0],tc);
 			double wq = getWq((int)channelsDcc[i][0],tc);
 			double t_last_tx_access = getLastTxT((int)channelsDcc[i][0],tc);
-			double accInterval = SIMTIME_DBL(simTime()) - t_last_tx_access;
-			double facInterval = SIMTIME_DBL(simTime()) - lastGenOnChannel;
+			double t_tx_new = SIMTIME_DBL(simTime()) - t_last_tx_access;
+			double diff = SIMTIME_DBL(simTime()) - lastGenOnChannel;
+
+			if (t_tx_new > diff){
+				if(nWaiting == 0){
+					// Queue is dropping packets
+					channelsDcc[i][1] = SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc));
+				} else {
+					// Queue is slow
+					channelsDcc[i][1] = nWaiting * wq;
+				}
+			} else {
+				if(nWaiting > 0){
+					// There are messages waiting
+					channelsDcc[i][1] = nWaiting * wq;	
+				} else {
+					// Queue is empty
+					channelsDcc[i][1] = wq;
+				}
+			}
 			
-			channelsDcc[i][1] = nWaiting * wq;
+			
 			
 			channelsDcc[i][2] = getCbr((int)channelsDcc[i][0])*1000;
 			nCand++;
@@ -712,12 +736,12 @@ void ExampleService::sendExample(const SimTime& T_now, int selectedChannel)
 			//std::cout << findHost()->getFullName() << "Transmitting in channel" << selectedChannel << "\n";
 					
 			genCh[selch] = genCh[selch] + 1;
-			lastTx[selch][0] = lastTx[selch][1];
-			lastTx[selch][1] = SIMTIME_DBL(T_now);
+			lastGen[selch][0] = lastGen[selch][1];
+			lastGen[selch][1] = SIMTIME_DBL(T_now);
 			double tgo = SIMTIME_DBL(genGot(selectedChannel,seltc)); 
 
 			myfile7 = fopen("MessageTriggerCLR.csv", "a");
-			fprintf(myfile7, "%s,%f,%f,%f,%f,%d,%f,%f,%f,%f,%d,%d,%d,%f,%f,%f,%f,%f,%f\n",findHost()->getFullName(),SIMTIME_DBL(T_now),getCbr(180),getCbr(172),getCbr(176),selectedChannel,tgo,getWq(180,tcPrim),getWq(172,tcAlt),getWq(176,tcAlt),getQueueOccupancy(180,tcPrim),getQueueOccupancy(172,tcAlt),getQueueOccupancy(176,tcAlt),getLastTxT(180,tcPrim),lastTx[0][0],getLastTxT(172,tcAlt),lastTx[1][0],getLastTxT(176,tcAlt),lastTx[2][0]);
+			fprintf(myfile7, "%s,%f,%f,%f,%f,%d,%f,%f,%f,%f,%d,%d,%d,%f,%f,%f,%f,%f,%f\n",findHost()->getFullName(),SIMTIME_DBL(T_now),getCbr(180),getCbr(172),getCbr(176),selectedChannel,tgo,getWq(180,tcPrim),getWq(172,tcAlt),getWq(176,tcAlt),getQueueOccupancy(180,tcPrim),getQueueOccupancy(172,tcAlt),getQueueOccupancy(176,tcAlt),getLastTxT(180,tcPrim),lastGen[0][0],getLastTxT(172,tcAlt),lastGen[1][0],getLastTxT(176,tcAlt),lastGen[2][0]);
 			fclose(myfile7);
 
 			// send packet on specific network interface
