@@ -296,9 +296,10 @@ int ExampleService::minWq(std::vector<int> candidateChannels)
 			double diff = SIMTIME_DBL(simTime()) - lastGenOnChannel;
 
 			if (t_tx_new > diff){
-				if(nWaiting == 0){
+				if(nWaiting == 0 && ((1.0 / genInterval(channelsDcc[i][0],tc)) / 2.0)){ 
 					// Queue is dropping packets
 					channelsDcc[i][1] = SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc));
+					// Setter para Access
 				} else {
 					// Queue is slow
 					channelsDcc[i][1] = nWaiting * wq;
