@@ -91,6 +91,17 @@ double FlowControl::get_last_tx_t(access::AccessCategory ac) const
     return -10.0;
 }
 
+void FlowControl::set_average_interval(access::AccessCategory ac, double interval)
+{
+    auto it = m_tx_stats.find(ac);
+
+    if(it != m_tx_stats.end()){
+        
+        it->second.avg_interval_ms = interval;
+    }
+
+}
+
 void FlowControl::trigger()
 {
     drop_expired();

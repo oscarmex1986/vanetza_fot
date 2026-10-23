@@ -49,6 +49,7 @@ class ExampleService : public ItsG5Service
         omnetpp::SimTime genGot(int channel, int tc);
         double getLastTxT(int channel, int tc);
         double getCbr(int channel);
+        void setAverage(int channel, int tc, double interval);
         
 
     protected:

@@ -294,12 +294,13 @@ int ExampleService::minWq(std::vector<int> candidateChannels)
 			double t_last_tx_access = getLastTxT((int)channelsDcc[i][0],tc);
 			double t_tx_new = SIMTIME_DBL(simTime()) - t_last_tx_access;
 			double diff = SIMTIME_DBL(simTime()) - lastGenOnChannel;
+			double availableRateTC = 1.0 / genInterval(channelsDcc[i][0],tc);
 
 			if (t_tx_new > diff){
-				if(nWaiting == 0 && ((1.0 / genInterval(channelsDcc[i][0],tc)) / 2.0)){ 
+				if(nWaiting == 0 && availableRateTC > 2.0){ 
 					// Queue is dropping packets
 					channelsDcc[i][1] = SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc));
-					// Setter para Access
+					setAverage(channelsDcc[i][0],tc,channelsDcc[i][1]);
 				} else {
 					// Queue is slow
 					channelsDcc[i][1] = nWaiting * wq;
@@ -926,6 +927,35 @@ double ExampleService::getWq(int channel, int tc)
 	}
 
 	return 0.0;	
+}
+
+void ExampleService::setAverage(int channel, int tc, double interval)
+{
+	auto& networks = getFacilities().get_const<NetworkInterfaceTable>();
+	auto network = networks.select(channel);
+	auto netifc = network;
+	vanetza::dcc::TransmitRateThrottle* trc = netifc ? netifc->getDccEntity().getTransmitRateThrottle() : nullptr;
+	auto& dcc_entity = netifc->getDccEntity();
+	auto* req = dcc_entity.getRequestInterface();
+	if (!trc) {
+		throw cRuntimeError("No DCC TRC found for CA's primary channel %i", channel);
+	}
+	auto* fc = dynamic_cast<vanetza::dcc::FlowControl*>(req);
+	auto ac = vanetza::access::AccessCategory::VO;
+
+	if(fc){
+		if(tc == 1){
+			ac = vanetza::access::AccessCategory::VI;
+		}		
+		if(tc == 2){
+			ac = vanetza::access::AccessCategory::BE;
+		}		
+		if(tc == 3){
+			ac = vanetza::access::AccessCategory::BK;
+		}
+		fc->set_average_interval(ac,interval);
+	}
+
 }
 
 double ExampleService::getLastInterval(int channel, int tc)

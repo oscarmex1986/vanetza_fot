@@ -88,6 +88,7 @@ public:
     double get_average_tx_interval(access::AccessCategory ac) const;
     double get_last_tx_interval(access::AccessCategory ac) const;
     double get_last_tx_t(access::AccessCategory ac) const;
+    void set_average_interval(access::AccessCategory ac, double interval);
 
 private:
     struct PendingTransmission : public Transmission
