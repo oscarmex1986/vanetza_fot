@@ -47,7 +47,7 @@ ExampleService::ExampleService()
 {	
 	if(recFlagEs == 0){
 		myfile3 = fopen("RecExa.csv", "w");
-		fprintf(myfile3, "%s,%s,%s,%s\n", "nodeName","timestamp","channel","size");
+		fprintf(myfile3, "%s,%s,%s,%s,%s,%s\n", "nodeName","timestamp","messageID","channel","size","e2e");
 		fclose(myfile3);
 		recFlagEs = 1;
 		
@@ -56,7 +56,7 @@ ExampleService::ExampleService()
 		fclose(myfile5);
 		
 		myfile7 = fopen("MessageTriggerCLR.csv", "w");
-		fprintf(myfile7, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n","nodeName","timestamp","180","172","176","Selected","tgo","Wq_180","Wq_172","Wq_176","Lq_180","Lq_172","Lq_176","ltx_180","lrq_180","ltx_172","lrq_172","ltx_176","lrq_176");
+		fprintf(myfile7, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n","nodeName","timestamp","messageID","180","172","176","Selected","tgo","Wq_180","Wq_172","Wq_176","Lq_180","Lq_172","Lq_176","ltx_180","lrq_180","ltx_172","lrq_172","ltx_176","lrq_176");
 		fclose(myfile7);
 	}
 	lastChannel = 0;
@@ -71,13 +71,6 @@ ExampleService::ExampleService()
 	lastGen[0][1] = 0.0;
 	lastGen[1][1] = 0.0;
 	lastGen[2][1] = 0.0;
-	lastTx[0][0] = 0.0;
-	lastTx[1][0] = 0.0;
-	lastTx[2][0] = 0.0;
-	lastTx[0][1] = 0.0;
-	lastTx[1][1] = 0.0;
-	lastTx[2][1] = 0.0;
-
 
 }
 
@@ -94,7 +87,8 @@ void ExampleService::indicate(const btp::DataIndication& ind, cPacket* packet, c
 		EV_INFO << "packet indication on channel " << net.channel << "\n";
 		myfile3 = fopen("RecExa.csv", "a");
 		unsigned int canal = net.channel;
-		fprintf(myfile3, "%s,%f,%d,%d\n", findHost()->getFullName(),SIMTIME_DBL(simTime()),canal,packet->getByteLength());
+		double latency = SIMTIME_DBL(simTime()) - SIMTIME_DBL(packet->getCreationTime());
+		fprintf(myfile3, "%s,%f,%d,%d,%d,%f\n", findHost()->getFullName(),packet->getTreeId(),SIMTIME_DBL(simTime()),canal,packet->getByteLength(),latency);
 		fclose(myfile3);
 	}
 
@@ -746,9 +740,9 @@ void ExampleService::sendExample(const SimTime& T_now, int selectedChannel)
 			lastGen[selch][0] = lastGen[selch][1];
 			lastGen[selch][1] = SIMTIME_DBL(T_now);
 			double tgo = SIMTIME_DBL(genGot(selectedChannel,seltc)); 
-
+			long messageID = packet->getTreeId();
 			myfile7 = fopen("MessageTriggerCLR.csv", "a");
-			fprintf(myfile7, "%s,%f,%f,%f,%f,%d,%f,%f,%f,%f,%d,%d,%d,%f,%f,%f,%f,%f,%f\n",findHost()->getFullName(),SIMTIME_DBL(T_now),getCbr(180),getCbr(172),getCbr(176),selectedChannel,tgo,getWq(180,tcPrim),getWq(172,tcAlt),getWq(176,tcAlt),getQueueOccupancy(180,tcPrim),getQueueOccupancy(172,tcAlt),getQueueOccupancy(176,tcAlt),getLastTxT(180,tcPrim),lastGen[0][0],getLastTxT(172,tcAlt),lastGen[1][0],getLastTxT(176,tcAlt),lastGen[2][0]);
+			fprintf(myfile7, "%s,%f,%d,%f,%f,%f,%d,%f,%f,%f,%f,%d,%d,%d,%f,%f,%f,%f,%f,%f\n",findHost()->getFullName(),SIMTIME_DBL(T_now),messageID,getCbr(180),getCbr(172),getCbr(176),selectedChannel,tgo,getWq(180,tcPrim),getWq(172,tcAlt),getWq(176,tcAlt),getQueueOccupancy(180,tcPrim),getQueueOccupancy(172,tcAlt),getQueueOccupancy(176,tcAlt),getLastTxT(180,tcPrim),lastGen[0][0],getLastTxT(172,tcAlt),lastGen[1][0],getLastTxT(176,tcAlt),lastGen[2][0]);
 			fclose(myfile7);
 
 			// send packet on specific network interface
