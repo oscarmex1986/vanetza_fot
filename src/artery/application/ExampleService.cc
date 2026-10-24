@@ -88,7 +88,7 @@ void ExampleService::indicate(const btp::DataIndication& ind, cPacket* packet, c
 		myfile3 = fopen("RecExa.csv", "a");
 		unsigned int canal = net.channel;
 		double latency = SIMTIME_DBL(simTime()) - SIMTIME_DBL(packet->getCreationTime());
-		fprintf(myfile3, "%s,%f,%d,%d,%d,%f\n", findHost()->getFullName(),packet->getTreeId(),SIMTIME_DBL(simTime()),canal,packet->getByteLength(),latency);
+		fprintf(myfile3, "%s,%f,%d,%d,%d,%f\n", findHost()->getFullName(),SIMTIME_DBL(simTime()),packet->getTreeId(),canal,packet->getByteLength(),latency);
 		fclose(myfile3);
 	}
 
