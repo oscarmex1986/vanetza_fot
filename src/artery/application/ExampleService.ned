@@ -42,7 +42,7 @@ simple ExampleService like ItsG5Service
         int tcPrimary = default(3);
         int tcAlternate = default(0);
 
-        volatile double genRate = exponential(0.100);
+        volatile double genRate = exponential(0.025);
 
         // Policy for message generation when messages/sec
         // conditions are not met

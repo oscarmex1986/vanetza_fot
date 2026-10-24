@@ -284,9 +284,9 @@ int ExampleService::minWq(std::vector<int> candidateChannels)
 			int tc = tcAlt;
 			if(candidateChannels[i] == 180) tc = tcPrim;
 			double lastGenOnChannel = 0.0;
-			if(candidateChannels[i] == 180) lastGenOnChannel = lastGen[0][1];
-			if(candidateChannels[i] == 172) lastGenOnChannel = lastGen[1][1];
-			if(candidateChannels[i] == 176) lastGenOnChannel = lastGen[2][1];
+			if(candidateChannels[i] == 180) lastGenOnChannel = lastGen[0][0];
+			if(candidateChannels[i] == 172) lastGenOnChannel = lastGen[1][0];
+			if(candidateChannels[i] == 176) lastGenOnChannel = lastGen[2][0];
 			channelsDcc[i][0] = candidateChannels[i];
 			int nWaiting = getTCOccupancy((int)channelsDcc[i][0],tc);
 			double lastTxInterval = getLastInterval(channelsDcc[i][0],tc);
@@ -308,10 +308,15 @@ int ExampleService::minWq(std::vector<int> candidateChannels)
 			} else {
 				if(nWaiting > 0){
 					// There are messages waiting
-					channelsDcc[i][1] = nWaiting * wq;	
+					channelsDcc[i][1] = nWaiting * wq;
+			
 				} else {
 					// Queue is empty
 					channelsDcc[i][1] = wq;
+					if(availableRateTC > 2.0){
+						channelsDcc[i][1] = SIMTIME_DBL(genInterval((int)channelsDcc[i][0],tc));
+						setAverage(channelsDcc[i][0],tc,channelsDcc[i][1]);
+					}
 				}
 			}
 			
